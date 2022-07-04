@@ -36,8 +36,46 @@ features in Arbeit:
   * Speicherung und Schnellzugriff auf Titel
   * Gruppenbutton zum Handling von Gruppen/Raids (neu einladen, speichern, diverse Automatiken)
 
-geplante Features:
+geplante Features für die Zukunft:
   * Implementation von "TinyLittleRaidTool" (ein weiteres Addon von mir zum handling von raids)
+  * Implementierung von ComOnIn und GroupInvite (inwiefern ich sie ersetze oder integriere ist noch nicht klar)
+  * Implementation von AutoFollow und AutoQuest (ich gedenke, eine "stille" kommunikation zwischen gruppenmitgliedern zu implementieren)
+
+Benötigte und empfohlene Addons:
+* pyos - oder ähnliches Addon, welches das os-Object bereitstellt wird benötigt
+* pylib, pyceh - der ClassExchangeHelper und die KeyBindings von Pyrrhus werden ausdrücklich empfohlen
+
+Inkompatible und nicht mehr benötigte Addons:
+* die im Ordner "advanced" vorhandenen Addons dürfen nicht doppelt vorhanden sein - also jeweils in advanced oder addons löschen
+* jegliche Infobars wie z.b. XBar, BKInfoBar oder ZZInfoBar könnten Probleme bereiten. Da RoMBar diese Leisten ersetzt werde ich keinerlei Support dafür anbieten.
+* TitleList und TitleSelect - die Funktionalitäten werden ab Version 2.2 komplett übernommen
+* jegliche anderen Addons, deren Funktionalitäten übernommen wurden, sollten gelöscht werden z.B. (Liste unvollständig):
+ * ActionBarCooldown
+ * ActionBarTweaker
+ * afStayWithMe
+ * AmmoPersist
+ * AutoAcceptInvitations
+ * AutoEquipAmmo
+ * AutoRepair
+ * AutoSnoop
+ * Gildenpieps
+ * globalFriendList
+ * GlobalCooldown
+ * InvitedByFriend
+ * ItemQueueSpeedup
+ * MacroCooldowns
+ * MountToggle
+ * QuickTeleport
+ * TimeStamp
+ * Unlock_Actionbar_With_Shift
+ * Vsell
+ * WheresMyHome
+ 
+
+Ich freue mich über Kritik, Anregungen, Wünsche und vor allem Bug- und Inkompatibilitätsmeldungen und biete gern Support und Hilfe an. Allerdings möchte ich auch darauf hinweisen, dass ich mich nicht um Addons kümmere, deren Funktionalität bereits implementiert ist, veraltet sind oder auch ohne RoMBar nicht fehlerfrei laufen. Viele andere Addons wurden zum Teil seit über 10 Jahren nicht mehr überarbeitet und die Lebenszeit, die ich dafür aufwenden müsste, investiere ich lieber in sinnvollere Aufgaben. Ebenso übernehme ich keinen Support für den Einsatz meiner Addons auf nicht-offiziellen RoM-Servern.
+
 
 greetings
-Schulani@Kerub
+Schulani
+
+ingame-contact: Schulani@Kerub oder Celesteria@Kerub
