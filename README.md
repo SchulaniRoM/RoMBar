@@ -40,8 +40,8 @@ features in Arbeit:
 
 geplante Features für die Zukunft:
   * Implementation von "TinyLittleRaidTool" (ein weiteres Addon von mir zum handling von raids)
-  * Implementierung von ComOnIn und GroupInvite (inwiefern ich sie ersetze oder integriere ist noch nicht klar)
-  * Implementation von AutoFollow und AutoQuest (ich gedenke, eine "stille" kommunikation zwischen gruppenmitgliedern zu implementieren)
+  * Implementierung von ComeOnIn und GroupInvite (inwiefern ich sie ersetze oder integriere ist noch nicht klar)
+  * Implementation von AutoFollow und AutoQuest (ich gedenke, eine "stille" Kommunikation zwischen Gruppenmitgliedern/Twinks zu implementieren)
 
 Benötigte und empfohlene Addons:
 * pyos - oder ähnliches Addon, welches das os-Object bereitstellt wird benötigt
