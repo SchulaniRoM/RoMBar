@@ -1,0 +1,29 @@
+<Ui xmlns="http://www.runewaker.com/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.runewaker.com/
+UI.xsd">
+	<Script file="cenedriliniframe.lua"/>
+	<Frame name="ExtraWeekInstanceInfoFrameTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="36" y="36"/>
+		</Size>		
+ 		<Scripts>
+			<OnShow>
+				ExtraWeekInstanceInfoFrame_OnShow(this)
+			</OnShow>
+		</Scripts>
+	</Frame>
+	<Frame name="ExtraWeekInstanceInfoFrame1" parent="WeekInstanceInfoFrame1" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame2" parent="WeekInstanceInfoFrame2" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame3" parent="WeekInstanceInfoFrame3" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame4" parent="WeekInstanceInfoFrame4" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame5" parent="WeekInstanceInfoFrame5" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame6" parent="WeekInstanceInfoFrame6" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame7" parent="WeekInstanceInfoFrame7" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame8" parent="WeekInstanceInfoFrame8" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame9" parent="WeekInstanceInfoFrame9" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame10" parent="WeekInstanceInfoFrame10" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame11" parent="WeekInstanceInfoFrame11" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame12" parent="WeekInstanceInfoFrame12" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame13" parent="WeekInstanceInfoFrame13" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame14" parent="WeekInstanceInfoFrame14" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+	<Frame name="ExtraWeekInstanceInfoFrame15" parent="WeekInstanceInfoFrame15" inherits="ExtraWeekInstanceInfoFrameTemplate"/>
+</Ui>

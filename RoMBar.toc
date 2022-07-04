@@ -1,0 +1,9 @@
+##
+## RoMBar - Runes of Magic Information Bar
+## by Schulani
+## released under the Creative Commons License By-Nc-Sa:
+## http://creativecommons.org/licenses/by-nc-sa/3.0/
+##
+
+lua\RoMBar.lua
+xml\RoMBar.xml

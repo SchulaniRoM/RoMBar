@@ -1,0 +1,281 @@
+<Ui xmlns="http://www.runewaker.com/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.runewaker.com/UI.xsd">
+
+	<GameTooltip name="RoMBarTooltip" inherits="GameTooltipTemplate" parent="UIParent" frameStrata="DIALOG" hidden="true">
+		<Size>
+			<AbsDimension x="218" y="55"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Scripts>
+			<OnLoad>
+			GameTooltip_OnLoad(this)
+			</OnLoad>
+			<OnUpdate>
+			GameTooltip_OnUpdate(this, elapsedTime)
+			</OnUpdate>
+			<OnShow>
+			GameTooltip_OnShow(this)
+			</OnShow>
+		</Scripts>
+	</GameTooltip>
+
+	<Frame name="RoMBarDropDownMenu" inherits="UIDropDownMenuTemplate" hidden="true" />
+
+	<Button name="RoMBarButtonTemplate" virtual="true" hidden="true" enableMouse="true">
+		<Size>
+			<AbsDimension x="100" y="18"/>
+		</Size>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture file="Interface\Addons\RoMBar\Textures\bg_button">
+					<Size>
+						<AbsDimension x="18" y="18"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" />
+					</Anchors>
+				</Texture>
+				<Texture name="$parentIcon" file="Interface\Addons\RoMBar\Textures\bg_button">
+					<Size>
+						<AbsDimension x="16" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="1" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="$parentTextI" inherits="GameFontHighlight" justifyH="CENTER" text="">
+					<FontHeight>
+						<AbsValue val="12"/>
+					</FontHeight>
+					<Size>
+						<AbsDimension x="18" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" />
+					</Anchors>
+				</FontString>
+				<FontString name="$parentTextT" inherits="GameFontHighlight" justifyH="CENTER" text="">
+					<FontHeight>
+						<AbsValue val="11"/>
+					</FontHeight>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-5" y="-4"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentTextB" inherits="GameFontHighlight" justifyH="CENTER" text="">
+					<FontHeight>
+						<AbsValue val="9"/>
+					</FontHeight>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-5" y="6"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentTextM" inherits="GameFontHighlight" justifyH="CENTER" text="">
+					<FontHeight>
+						<AbsValue val="11"/>
+					</FontHeight>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-5" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				this:RegisterForClicks ("LeftButton", "MiddleButton", "RightButton")
+			</OnLoad>
+			<OnClick>
+				if RoMBar then RoMBar.OnEvent("ONCLICK", this, key) end
+			</OnClick>
+			<OnEnter>
+				if RoMBar then RoMBar.OnEvent("ONENTER", this) end
+			</OnEnter>
+			<OnLeave>
+				if RoMBar then RoMBar.OnEvent("ONLEAVE", this) end
+			</OnLeave>
+		</Scripts>
+	</Button>
+
+	<Frame name="RoMBarMain" parent="UIParent" enableMouse="true" frameStrata="LOW">
+		<Size>
+			<AbsDimension y="27"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOMLEFT"/>
+			<Anchor point="BOTTOMRIGHT"/>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentBackground" file="Interface\Addons\RoMBar\Textures\bg_bar"></Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="RoMBarButton1"  inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton2"  inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton3"  inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton4"  inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton5"  inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton6"  inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton7"  inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton8"  inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton9"  inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton10" inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton11" inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton12" inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton13" inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton14" inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton15" inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton16" inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton17" inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton18" inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton19" inherits="RoMBarButtonTemplate" />
+			<Button name="RoMBarButton20" inherits="RoMBarButtonTemplate" />
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				if RoMBar then RoMBar.OnLoad(this) end
+			</OnLoad>
+			<OnEvent>
+				if RoMBar then RoMBar.OnEvent(event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) end
+			</OnEvent>
+			<OnUpdate>
+				if RoMBar then RoMBar.OnUpdate(elapsedTime) end
+			</OnUpdate>
+		</Scripts>
+	</Frame>
+
+	<Button name="PlayerBuffButton33" inherits="PlayerBuffButtonTemplate" parent="PlayerBuffFrame" id="33"/>
+	<Button name="PlayerBuffButton34" inherits="PlayerBuffButtonTemplate" parent="PlayerBuffFrame" id="34"/>
+	<Button name="PlayerBuffButton35" inherits="PlayerBuffButtonTemplate" parent="PlayerBuffFrame" id="35"/>
+	<Button name="PlayerBuffButton36" inherits="PlayerBuffButtonTemplate" parent="PlayerBuffFrame" id="36"/>
+	<Button name="PlayerBuffButton37" inherits="PlayerBuffButtonTemplate" parent="PlayerBuffFrame" id="37"/>
+	<Button name="PlayerBuffButton38" inherits="PlayerBuffButtonTemplate" parent="PlayerBuffFrame" id="38"/>
+	<Button name="PlayerBuffButton39" inherits="PlayerBuffButtonTemplate" parent="PlayerBuffFrame" id="39"/>
+	<Button name="PlayerBuffButton40" inherits="PlayerBuffButtonTemplate" parent="PlayerBuffFrame" id="40"/>
+	<Button name="PlayerBuffButton41" inherits="PlayerBuffButtonTemplate" parent="PlayerBuffFrame" id="41"/>
+
+	<Frame name="RoMBarTooltipPositioner" parent="UIParent" frameStrata="BACKGROUND" hidden="true" movable="true" enableMouse="true">
+		<Size>
+			<AbsDimension x="250" y="100"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Backdrop edgeFile="Interface\Addons\RoMBar\Textures\edge" bgFile="Interface\Addons\RoMBar\Textures\bg_bar">
+			<BackgroundInsets>
+				<AbsInset top="4" left="4" bottom="4" right="4"/>
+			</BackgroundInsets>
+			<EdgeSize>
+				<AbsValue val="16"/>
+			</EdgeSize>
+			<TileSize>
+				<AbsValue val="16"/>
+			</TileSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="$parentText" inherits="GameFontNormal" justifyH="CENTER">
+					<Anchors>
+						<Anchor point="CENTER" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<RadioButton name="$parentRadio1" inherits="UIPanelRadioButtonTemplate" id="1">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="8" y="8"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						if RoMBar then RoMBar.SaveTooltipPosition() end
+					</OnClick>
+				</Scripts>
+			</RadioButton>
+			<RadioButton name="$parentRadio2" inherits="UIPanelRadioButtonTemplate" id="2">
+				<Anchors>
+					<Anchor point="TOPRIGHT">
+						<Offset>
+							<AbsDimension x="-8" y="8"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						if RoMBar then RoMBar.SaveTooltipPosition() end
+					</OnClick>
+				</Scripts>
+			</RadioButton>
+			<RadioButton name="$parentRadio3" inherits="UIPanelRadioButtonTemplate" id="3">
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT">
+						<Offset>
+							<AbsDimension x="-8" y="-8"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						if RoMBar then RoMBar.SaveTooltipPosition() end
+					</OnClick>
+				</Scripts>
+			</RadioButton>
+			<RadioButton name="$parentRadio4" inherits="UIPanelRadioButtonTemplate" id="4">
+				<Anchors>
+					<Anchor point="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="8" y="-8"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						if RoMBar then RoMBar.SaveTooltipPosition() end
+					</OnClick>
+				</Scripts>
+			</RadioButton>
+		</Frames>
+		<Scripts>
+			<OnMouseDown>
+				this:StartMoving()
+			</OnMouseDown>
+			<OnMouseUp>
+				this:StopMovingOrSizing()
+				if RoMBar then RoMBar.SaveTooltipPosition() end
+			</OnMouseUp>
+		</Scripts>
+
+		<Button parent="UIParent">
+			<Size>
+				<AbsDimension x="200" y="200"/>
+			</Size>
+			<Offset>
+				<AbsDimension x="10" y="10"/>
+			</Offset>
+			<NormalTexture file="Interface/gameicon/gameicon"/>
+		</Button>
+
+	</Frame>
+
+</Ui>

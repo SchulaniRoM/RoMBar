@@ -1,0 +1,50 @@
+<Ui xmlns="http://www.runewaker.com/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.runewaker.com/
+UI.xsd">
+	<Script file="extracharacterframe.lua"/>
+	<Frame name="ExtraEquipItemButtonTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="36" y="36"/>
+		</Size>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="$parentDura" inherits="GameFontHighlight" text="???">
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+ 		<Scripts>
+			<OnLoad>
+				ExtraEquipItemButton_OnLoad(this)
+			</OnLoad>
+			<OnEvent>
+				ExtraEquipItemButton_OnEvent(this, event)
+			</OnEvent>
+		</Scripts>
+	</Frame>
+	<Frame name="ExtraEquipItemButton1" parent="EquipRing0Slot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton2" parent="EquipRing1Slot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton3" parent="EquipEarring0Slot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton4" parent="EquipEarring1Slot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton5" parent="EquipNecklaceSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton6" parent="EquipTalisman0Slot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton7" parent="EquipTalisman1Slot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton8" parent="EquipTalisman2Slot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton9" parent="EquipHeadSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton10" parent="EquipChestSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton11" parent="EquipWaistSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton12" parent="EquipLegsSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton13" parent="EquipMainHandSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton14" parent="EquipRangedSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton15" parent="EquipShoulderSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton16" parent="EquipHandsSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton17" parent="EquipFeetSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton18" parent="EquipBackSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton19" parent="EquipSecondaryHandSlot" inherits="ExtraEquipItemButtonTemplate"/>
+	<Frame name="ExtraEquipItemButton20" parent="EquipAdornmentSlot" inherits="ExtraEquipItemButtonTemplate"/>
+</Ui>

@@ -1,0 +1,48 @@
+<Ui xmlns="http://www.runewaker.com/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.runewaker.com/
+UI.xsd">
+	<Script file="extracraftframe.lua"/>
+	<Frame name="ExtraCraftSkillButtonTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="36" y="36"/>
+		</Size>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="$parentTop" inherits="GameFontGreen" text="???">
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentBottom" inherits="GameFontYellow" text="???">
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+ 		<Scripts>
+			<OnLoad>
+				ExtraCraftSkillButtons_OnLoad(this)
+			</OnLoad>
+			<OnEvent>
+				ExtraCraftSkillButtons_OnEvent(this, event)
+			</OnEvent>
+		</Scripts>
+	</Frame>
+	<Frame name="ExtraCraftSkillButton1" parent="CraftSkillButton1" inherits="ExtraCraftSkillButtonTemplate"/>
+	<Frame name="ExtraCraftSkillButton2" parent="CraftSkillButton2" inherits="ExtraCraftSkillButtonTemplate"/>
+	<Frame name="ExtraCraftSkillButton3" parent="CraftSkillButton3" inherits="ExtraCraftSkillButtonTemplate"/>
+	<Frame name="ExtraCraftSkillButton4" parent="CraftSkillButton4" inherits="ExtraCraftSkillButtonTemplate"/>
+	<Frame name="ExtraCraftSkillButton5" parent="CraftSkillButton5" inherits="ExtraCraftSkillButtonTemplate"/>
+	<Frame name="ExtraCraftSkillButton6" parent="CraftSkillButton6" inherits="ExtraCraftSkillButtonTemplate"/>
+	<Frame name="ExtraCraftSkillButton7" parent="CraftSkillButton7" inherits="ExtraCraftSkillButtonTemplate"/>
+	<Frame name="ExtraCraftSkillButton8" parent="CraftSkillButton8" inherits="ExtraCraftSkillButtonTemplate"/>
+	<Frame name="ExtraCraftSkillButton9" parent="CraftSkillButton9" inherits="ExtraCraftSkillButtonTemplate"/>
+</Ui>
