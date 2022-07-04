@@ -26,7 +26,7 @@ features:
   * Automatisches Überspringen der Dialoge bei Händlern
   * zahlreiche Makros und Funktionen für verschiedene NPCs, Aufgaben und sesonale Events (siehe Doku)
   * schnelles Umschalten von click2move und Actionbar-Sperre
-* enthält eine überarbeitete Version von LootIt, welche um ein AutoSell-Feature erweitert wurde (original credits to Tinsus <tinsus@t-online.de>)
+* enthält eine überarbeitete Version von LootIt, welche um ein AutoSell-Feature erweitert wurde (basierend auf der aktualisierten Version von Wichtl/Kampfkrapfn - original credits to Tinsus <tinsus@t-online.de>)
 * enthält ext_cenedriliniframe, ext_characterframe, ext_craftframe, ext_housekeeperbuttons (credit to various unknown authors of these projects)
 * modularer Aufbau ermöglicht komfortables Einbinden neuer Buttons und Module
 * mehrsprachig (derzeit nur Deutsch - um Mitarbeit bei der Übersetzung wird gebeten)
