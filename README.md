@@ -25,12 +25,14 @@ features:
   * Automatisches Abgeben erledigter Quests beim Anklicken des NPC
   * Automatisches Überspringen der Dialoge bei Händlern
   * zahlreiche Makros und Funktionen für verschiedene NPCs, Aufgaben und sesonale Events (siehe Doku)
+  * schnelles Umschalten von click2move und Actionbar-Sperre
 * enthält eine überarbeitete Version von LootIt, welche um ein AutoSell-Feature erweitert wurde (original credits to Tinsus <tinsus@t-online.de>)
 * enthält ext_cenedriliniframe, ext_characterframe, ext_craftframe, ext_housekeeperbuttons (credit to various unknown authors of these projects)
 * modularer Aufbau ermöglicht komfortables Einbinden neuer Buttons und Module
 * mehrsprachig (derzeit nur Deutsch - um Mitarbeit bei der Übersetzung wird gebeten)
 * verzichtet auf übertrieben viele Eingriffe ins System, sondern reagiert vorzugsweise auf vorhandene events (+Stabilität)
 * überarbeitetes Event-Handling (+Performance)
+* Schnellzugriff auf nahezu alle benötigten Spielinhalte/Anzeigen und Konfigurationen
 
 features in Arbeit:
   * Speicherung und Schnellzugriff auf Titel
