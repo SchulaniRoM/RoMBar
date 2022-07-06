@@ -8,17 +8,27 @@ local ME = {
 		"PARTY_INVITE_REQUEST", "RIDE_INVITE_REQUEST", "DUEL_REQUESTED",
 		"CHAT_MSG_GUILD", "CHAT_MSG_PARTY", "CHAT_MSG_WISPER",
 	},
+	importState	= 0,
 }
+local IMPORTSTATE_NONE = 0
+local IMPORTSTATE_WORK = 1
+local IMPORTSTATE_DONE = 2
 
 function ME.Update(event, ...)
-	RB.Debug("Update", event, ...)
-	if RB.settings.friendSync==true and (event=="RESET_FRIEND" or event=="LOADING_END") then
-		RB.global.friends											= RB.global.friends or {}
-		if not ME.imported and RB.global.friends[GetCurrentRealm()] then
+
+	if event=="LOADING_END" and ME.importState==IMPORTSTATE_NONE then
+		RB.global.friends	= RB.global.friends or {}
+		if RB.global.friends[GetCurrentRealm()] then
 			ME.SetFriendList(RB.global.friends[GetCurrentRealm()])
 		end
-		RB.global.friends[GetCurrentRealm()]	= ME.GetFriendList()
 	end
+
+	if event=="RESET_FRIEND" then
+		if ME.importState~=IMPORTSTATE_DONE then return end
+		RB.global.friends[GetCurrentRealm()] = ME.GetFriendList()
+	end
+
+	RB.Debug("Update", event, ...)
 
 	local gNum, gMax	= 0, IsInGuild() and GetNumGuildMembers() or 0
 	local fNum, fMax	= 0, GetFriendCount(DF_Socal_Token_Friend)
@@ -98,14 +108,21 @@ function ME.GetFriendList()
 end
 
 function ME.SetFriendList(list)
-	if ME.imported == true or RB.settings.friendSync==false then return end
-	local localFriends		= ME.GetFriendList()
-	local groups, gCnt		= {}, GetSocalGroupCount(DF_Socal_Token_Friend)
+	if ME.importState>IMPORTSTATE_NONE or RB.settings.friendSync==false then return end
+	ME.importState = IMPORTSTATE_WORK
+	RB.Debug("start friend import")
 
-	for i=1, gCnt do
-		local gID, name	= GetSocalGroupInfo(DF_Socal_Token_Friend, i)
-		groups[name]		= gID
+	refreshGroups = function()
+		local tmp = {}
+		for i=1, GetSocalGroupCount(DF_Socal_Token_Friend) do
+			local gID, name	= GetSocalGroupInfo(DF_Socal_Token_Friend, i)
+			tmp[name]		= gID
+		end
+		return tmp
 	end
+
+	local localFriends		= ME.GetFriendList()
+	local groups					= refreshGroups()
 
 	for name, group in pairs(list) do
 		if name~=UnitName("player") then
@@ -113,9 +130,8 @@ function ME.SetFriendList(list)
 				AddFriend(DF_Socal_Token_Friend, name)
 			end
 			if groups[group]==nil then
-				gCnt = gCnt + 1
 				AddSocalGroup(DF_Socal_Token_Friend, group)
-				groups[group] = gCnt
+				groups = refreshGroups()
 			end
 			SetFriendGroup(DF_Socal_Token_Friend, name, groups[group])
 		end
@@ -129,7 +145,7 @@ function ME.SetFriendList(list)
 		end
 	end
 
-	ME.imported = true;
+	ME.importState = IMPORTSTATE_DONE
 end
 
 function ChatBeep(event)
