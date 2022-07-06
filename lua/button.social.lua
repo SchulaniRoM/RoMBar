@@ -4,7 +4,7 @@ local RB = _G.RoMBar
 local ME = {
 	icon			= {"Interface/gameicon/gameicon", 0, 0.125, 0.375, 0.5},
 	events		= {
-		"RESET_FRIEND", "UPDATE_GUILD_MEMBER",
+		"RESET_FRIEND", "UPDATE_GUILD_MEMBER", "LOADING_END",
 		"PARTY_INVITE_REQUEST", "RIDE_INVITE_REQUEST", "DUEL_REQUESTED",
 		"CHAT_MSG_GUILD", "CHAT_MSG_PARTY", "CHAT_MSG_WISPER",
 	},
@@ -12,6 +12,14 @@ local ME = {
 
 function ME.Update(event, ...)
 	RB.Debug("Update", event, ...)
+	if RB.settings.friendSync==true and (event=="RESET_FRIEND" or event=="LOADING_END") then
+		RB.global.friends											= RB.global.friends or {}
+		if not ME.imported and RB.global.friends[GetCurrentRealm()] then
+			ME.SetFriendList(RB.global.friends[GetCurrentRealm()])
+		end
+		RB.global.friends[GetCurrentRealm()]	= ME.GetFriendList()
+	end
+
 	local gNum, gMax	= 0, IsInGuild() and GetNumGuildMembers() or 0
 	local fNum, fMax	= 0, GetFriendCount(DF_Socal_Token_Friend)
 	for i=1, gMax do
@@ -71,77 +79,57 @@ function ME.Click(key, tooltip)
 	end
 end
 
-function ME.Init()
-	if RB.global.friends and RB.global.friends[GetCurrentRealm()] then
-		ME.SetFriendList(RB.global.friends[GetCurrentRealm()])
-	end
-	RB.global.friends[GetCurrentRealm()]	= ME.GetFriendList()
-	return true
-end
-
-local OrigAddFriend = RB.Hook(_G, "AddFriend", function(type, name)
-	RB.Print("adding "..name.." to friendlist")
-	RB.global.friends = RB.global.friends or {}
-	RB.global.friends[GetCurrentRealm()]	= ME.GetFriendList()
-	RB.GetOriginalFunction(_G, "AddFriend")(type, name)
-end)
-
-local OrigDelFriend = RB.Hook(_G, "DelFriend", function(type, name)
-	RB.Print("removing "..name.." from friendlist")
-	RB.global.friends = RB.global.friends or {}
-	RB.global.friends[GetCurrentRealm()]	= ME.GetFriendList()
-	RB.GetOriginalFunction(_G, "DelFriend")(type, name)
-end)
-
 function ME.GetFriendList()
-	local friends, acc	= {_groups = {}}, 0
-	local fMax, gMax		= GetFriendCount(DF_Socal_Token_Friend), GetSocalGroupCount(DF_Socal_Token_Friend)
-	for i=0,gMax do
-		local gID,name		= GetSocalGroupInfo(DF_Socal_Token_Friend, i)
-		if gID and name then
-			friends._groups[gID] = name
-			if name==GetAccountName() then acc = gID end
-		end
+	local friends, groups	= {}, {}
+	local fMax, gMax			= GetFriendCount(DF_Socal_Token_Friend), GetSocalGroupCount(DF_Socal_Token_Friend)
+	for i=1, gMax do
+		local gID, name	= GetSocalGroupInfo(DF_Socal_Token_Friend, i)
+		groups[gID]			= name
 	end
-	for i=1,fMax+1 do
-		local name,gID	= GetFriendInfo(DF_Socal_Token_Friend, i)
-		if name then friends[name] = gID end
+
+	for i=1,fMax do
+		local name, gID	= GetFriendInfo(DF_Socal_Token_Friend, i)
+		if name then friends[name] = groups[gID] end
 	end
 	if UnitName("player") then
-		friends[UnitName("player")] = acc>0 and acc or (gMax+1)
+		friends[UnitName("player")] = GetAccountName()
 	end
 	return friends
 end
 
 function ME.SetFriendList(list)
--- 	if ME.imported == true or RB.settings.friendSync==false then return end
--- 	local localFriends		= ME.GetFriendList()
---
--- 	local globalFriends		= RB.global.friends[GetCurrentRealm()] or {}
--- 	local fMax, add, del	= GetFriendCount(DF_Socal_Token_Friend), {}, {}
--- 	for name,gID in pairs(globalFriends) do
--- 		if name~="_groups" and name~=UnitName("player") then
--- 			if not IsMyFriend(name) then
--- 				todo[name]			= "add"
--- 			end
--- 			localFriends[name] = globalFriends[name]
--- 		end
--- 	end
--- 	for name,gID in pairs(localFriends) do
--- 		if name~="_groups" and name~=UnitName("player") then
--- 			if IsMyFriend(name) and globalFriends[name]==nil then
--- 				todo[name]			= "del"
--- 			end
--- 		end
--- 	end
--- 	for name,todo in pairs(todoList) do
--- 		if todo=="add" then
--- 			OrigAddFriend(DF_Socal_Token_Friend, name)
--- 		elseif todo=="del" then
--- 			OrigDelFriend(DF_Socal_Token_Friend, name)
--- 		end
--- 	end
--- 	ME.imported = true;
+	if ME.imported == true or RB.settings.friendSync==false then return end
+	local localFriends		= ME.GetFriendList()
+	local groups, gCnt		= {}, GetSocalGroupCount(DF_Socal_Token_Friend)
+
+	for i=1, gCnt do
+		local gID, name	= GetSocalGroupInfo(DF_Socal_Token_Friend, i)
+		groups[name]		= gID
+	end
+
+	for name, group in pairs(list) do
+		if name~=UnitName("player") then
+			if not IsMyFriend(name) then
+				AddFriend(DF_Socal_Token_Friend, name)
+			end
+			if groups[group]==nil then
+				gCnt = gCnt + 1
+				AddSocalGroup(DF_Socal_Token_Friend, group)
+				groups[group] = gCnt
+			end
+			SetFriendGroup(DF_Socal_Token_Friend, name, groups[group])
+		end
+	end
+
+	for name,_ in pairs(localFriends) do
+		if name~=UnitName("player") then
+			if IsMyFriend(name) and list[name]==nil then
+				DelFriend(DF_Socal_Token_Friend, name)
+			end
+		end
+	end
+
+	ME.imported = true;
 end
 
 function ChatBeep(event)

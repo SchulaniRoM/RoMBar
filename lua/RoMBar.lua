@@ -2,10 +2,10 @@
 RB = {
 	addonName							= "Extended RoMBar",
 	addonAuthor						= "Schulani & Celesteria@Kerub",
-	addonVersion					= 2.1,
+	addonVersion					= 2.12,
 	addonPath							= "Interface/AddOns/RoMBar",
 	addonSettings					= "RoMBarSettings",
-	addonProfile	= "RoMBarProfile",
+	addonProfile					= "RoMBarProfile",
 	-- internal
 	updateEventInterval		= 1,
 	coroutineInterval			= .2,
@@ -664,6 +664,7 @@ function RB.Print(...)
 end
 
 function RB.Debug(...)
+	if not RB.settings.debug==true then return end
 	local txt, chatFrame, k = Arglist(false,...), DEFAULT_CHAT_FRAME
 	for k=1,10 do if GetChatWindowInfo(k):lower()=="debug" then chatFrame = getglobal("ChatFrame"..k) break end end
 	chatFrame:AddMessage(txt, 1, 1, 1)

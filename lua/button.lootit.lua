@@ -6,7 +6,9 @@ local ME = {}
 function ME.Init()
 	if ME.Enabled() then
 		_G.LootIt_MinimapButton:Hide()
-		_G.LI_Data.Options.minimap = false
+		if _G.LI_Data and _G.LI_Data.Options then
+			_G.LI_Data.Options.minimap = false
+		end
 		return true
 	end
 	return false

@@ -56,6 +56,8 @@ function ME.DropDownHandler()
 			DD.AddCheckBox(RB.lang.CONFIG_GUILDBEEP, RB.settings.beepGuild, "beepGuild", ToggleValue)
 			DD.AddCheckBox(RB.lang.CONFIG_PARTYBEEP, RB.settings.beepParty, "beepParty", ToggleValue)
 			DD.AddCheckBox(RB.lang.CONFIG_WISPERBEEP, RB.settings.beepWisper, "beepWisper", ToggleValue)
+			DD.AddSeparator()
+			DD.AddCheckBox("Debug", RB.settings.debug, "debug", ToggleValue)
 		elseif UIDROPDOWNMENU_MENU_VALUE==2 then
 			DD.AddCheckBox(RB.lang.CONFIG_AUTOREPAIR, RB.settings.autoRepair, "autoRepair", ToggleValue)
 			DD.AddCheckBox(RB.lang.CONFIG_AUTOSNOOP, RB.settings.autoSnoop, "autoSnoop", ToggleValue)

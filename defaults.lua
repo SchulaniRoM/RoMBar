@@ -1,5 +1,6 @@
 
 local defaultsPerChar = {
+	debug							= false,
 	top								= false,
 	originalUI				= false,
 	tooltipScale			= 85,

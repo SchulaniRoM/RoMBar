@@ -1,0 +1,6 @@
+* Update 2.12
+
+* fixed some startup errors with new installation
+* fixed friendsync problem with groups (need to be confirmed)
+* added housemaid handling
+* fixed debug output on nondev installations
