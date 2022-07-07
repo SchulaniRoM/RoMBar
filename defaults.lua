@@ -26,11 +26,14 @@ local defaultsPerChar = {
 	friendSync				= true,		-- button.social
 	titleList					= {},			-- button.player
 	lastMount					= "",			-- button.mount
+	lastPetSlot				= 1,			-- button.pet
 	skipDialogs				= true,		-- module.dialogs
 	autoQuestComplete	= true,		-- module.dialogs
+	recallLocation		= "",			-- button.timetravel
+	autoSwapAmulets		= true,		-- button.equip
 }
 
-local buttons		= {{"macro", "player", "craft"}, {"mount", "pet", "titlequest", "equip", "social", "money", "bag", "lootit", "mail", "timetravel", "config"}}
+local buttons		= {{"macro", "player", "craft"}, {"mount", "pet", "titlequest", "equip", "social", "money", "lootit", "bag", "mail", "timetravel", "config"}}
 local modules		= {"dropdown", "dialogs", "events"}
 
 return defaultsPerChar, buttons, modules
