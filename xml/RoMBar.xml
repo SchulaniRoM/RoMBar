@@ -1,25 +1,6 @@
 <Ui xmlns="http://www.runewaker.com/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.runewaker.com/UI.xsd">
 
-	<GameTooltip name="RoMBarTooltip" inherits="GameTooltipTemplate" parent="UIParent" frameStrata="DIALOG" hidden="true">
-		<Size>
-			<AbsDimension x="218" y="55"/>
-		</Size>
-		<Anchors>
-			<Anchor point="CENTER"/>
-		</Anchors>
-		<Scripts>
-			<OnLoad>
-			GameTooltip_OnLoad(this)
-			</OnLoad>
-			<OnUpdate>
-			GameTooltip_OnUpdate(this, elapsedTime)
-			</OnUpdate>
-			<OnShow>
-			GameTooltip_OnShow(this)
-			</OnShow>
-		</Scripts>
-	</GameTooltip>
-
+	<GameTooltip name="RoMBarTooltip" inherits="GameTooltipTemplate" parent="UIParent" frameStrata="DIALOG" hidden="true" />
 	<Frame name="RoMBarDropDownMenu" inherits="UIDropDownMenuTemplate" hidden="true" />
 
 	<Button name="RoMBarButtonTemplate" virtual="true" hidden="true" enableMouse="true">
@@ -173,7 +154,7 @@
 
 	<Frame name="RoMBarTooltipPositioner" parent="UIParent" frameStrata="BACKGROUND" hidden="true" movable="true" enableMouse="true">
 		<Size>
-			<AbsDimension x="250" y="100"/>
+			<AbsDimension x="250" y="80"/>
 		</Size>
 		<Anchors>
 			<Anchor point="CENTER"/>
@@ -266,16 +247,5 @@
 			</OnMouseUp>
 		</Scripts>
 
-		<Button parent="UIParent">
-			<Size>
-				<AbsDimension x="200" y="200"/>
-			</Size>
-			<Offset>
-				<AbsDimension x="10" y="10"/>
-			</Offset>
-			<NormalTexture file="Interface/gameicon/gameicon"/>
-		</Button>
-
 	</Frame>
-
 </Ui>
