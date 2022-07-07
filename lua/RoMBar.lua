@@ -23,6 +23,19 @@ _G.RoMBar								= RB
 	internal
 --]]---------------------------------------------------------------------------
 
+local type = type
+local pairs = pairs
+local string = string
+local tostring = tostring
+local table = table
+local tonumber = tonumber
+local coroutine = coroutine
+local math = math
+local pcall = pcall
+local assert = assert
+local lloadfile = loadfile
+local dofile = dofile
+
 local function TableSize(tbl)
 	local c = 0
 	if type(tbl)=="table" then
@@ -98,6 +111,7 @@ function RB.OnLoad(frame)
 	RB.frame = frame
 	RB.frame:RegisterEvent("VARIABLES_LOADED")
 	RB.frame:RegisterEvent("SAVE_VARIABLES")
+	RB.frame:RegisterEvent("WARNING_MEMORY")
 	SaveVariablesPerCharacter(RB.addonProfile)
 	SaveVariables(RB.addonSettings)
 end
@@ -132,14 +146,16 @@ end
 
 function RB.OnEvent(event, ...)
 	RB.events = RB.events or {}
-	if event=="ONENTER" then return RB.Tooltip(event, ...) end
-	if event=="ONLEAVE" then return RB.Tooltip(event, nil) end
-	if event=="ONCLICK" then return RB.Click(event, ...) end
-	if RB[event] then RB[event](event, ...) end
+	if event=="ONENTER" or event=="ONLEAVE" then
+		return RB.ShowTooltip(event, ...)
+	elseif event=="ONCLICK" then
+		return RB.ButtonClick(...)
+	elseif RB[event] then
+		RB[event](event, ...)
+	end
 	if not TableIsEmpty(RB.events[event]) then
-		RB.Debug(event, ...)
 		for _,object in pairs(RB.events[event]) do
-			if type(object)=="function" or (object.loaded and object.initialized) then
+			if type(object)=="function" or (type(object)=="table" and (object.loaded and object.initialized)) then
 				local func = type(object)=="function" and object or (object[event] or object.Update)
 				if func and type(func)=="function" then
 					local success, errMsg = pcall(func, event, ...)
@@ -151,14 +167,12 @@ function RB.OnEvent(event, ...)
 end
 
 function RB.RegisterEvent(name, event, func)
-	local e
+	local evt
 	if type(event)=="table" then
-		for _,e in pairs(event) do
-			if #e then RB.RegisterEvent(name, e, func) end
+		for _,evt in pairs(event) do
+			RB.RegisterEvent(name, evt, func)
 		end
-		return
-	end
-	if event then
+	elseif type(event)=="string" and #event>0 then
 		local button = RB.GetButton(name)
 		if TableIsEmpty(RB.events[event]) then
 			RB.events[event]				= {}
@@ -231,6 +245,13 @@ end
 function RB.SAVE_VARIABLES()
 	_G[RB.addonProfile]		= RB.settings
 	_G[RB.addonSettings]	= RB.global
+end
+
+function RB.WARNING_MEMORY()
+	if StaticPopupDialogs["WARNING_MEMORY"]:IsVisible() then
+		ClickRequestDialogButton(0)
+	end
+	RB.Print(TEXT("SYSTEM_WARNING_MEMORY"))
 end
 
 --[[---------------------------------------------------------------------------
@@ -593,24 +614,25 @@ function RB.UpdateButtonText(name, line1, line2, iconText)
 	RB.ResizeButton(name)
 end
 
-function RB.Tooltip(event, frame)
+function RB.ShowTooltip(event, frame)
 	local button, name, index	= RB.GetButton(frame)
-	if not button or frame==nil then RoMBarTooltip:Hide() return end
+	if event=="ONLEAVE" or not button or frame==nil then return RoMBarTooltip:Hide() end
 
 	local tooltip, name, B, T, L, R, X, Y = RoMBarTooltip, name:upper()
 	local bX, bY = button.frame:GetLeft(), button.frame:GetTop()
 	if bY>GetScreenHeight()/2 	then	T, B, Y	= "TOP", "BOTTOM", -5	else	T, B, Y	= "BOTTOM", "TOP", 5	end
 	if bX<GetScreenWidth()-250	then	L, R, X	= "LEFT", "RIGHT", 0	else	L, R, X	= "RIGHT", "LEFT", 0		end
 
-	RB.Debug("Tooltip", frame, button, name, index, B..L, T..L, X, Y)
-
 	if RB.lang[name..'_TITLE'] then
+		RB.Debug("Tooltip", frame, name, index, B..L, T..L, X, Y)
+
 		tooltip:ClearAllAnchors()
 		tooltip:SetBackdrop(RB.Backdrop())
 		tooltip:SetScale(RB.settings.tooltipScale/100)
 		tooltip:SetAnchor(B..L, T..L, button.frame, X, Y)
 		tooltip:SetText(RB.ColorByName("yellow", RB.lang[name..'_TITLE']))
 		tooltip:AddSeparator(1, 1, 1)
+
 		if button.Tooltip then
 			button.Tooltip(tooltip)
 			tooltip:AddSeparator(1, 1, 1)
@@ -621,20 +643,24 @@ function RB.Tooltip(event, frame)
 				tooltip:AddDoubleLine(RB.ColorByName("LIGHT_BLUE", RB.lang[c]), RB.ColorByName("LIGHT_BLUE", button.actions[b].text or RB.lang[name.."_"..c]))
 			end
 		end
+
 		tooltip:Show()
+		CloseDropDownMenus()
 	else
 		tooltip:SetScale(1)
 		tooltip:Hide()
 	end
 end
 
-function RB.Click(event, frame, key)
+function RB.ButtonClick(frame, key)
 	local button, name, index	= RB.GetButton(frame)
 	if button and button.actions and button.actions[key] and not button.actions[key].disabled then
-		RB.Debug("Click", frame, button, name, index, key)
 		local func = button.actions[key].func or button.Click
-		local success,err = pcall(func, key, RoMBarTooltip)
-		if not success then RB.Error(err) end
+		if func and type(func)=="function" then
+			RB.Debug("Click", frame, button, name, index, key)
+			local success,err = pcall(func, key, RoMBarTooltip)
+			if not success then RB.Error(err) end
+		end
 	end
 end
 
@@ -675,12 +701,13 @@ function RB.Error(str, ...)
 	DEFAULT_CHAT_FRAME:AddMessage(str, .9, .3, .3)
 end
 
-function RB.Format(text, ...)
+function RB.Format(text, object, r, g, b)
 	if text and type(text)=="string" and text~="" then
-		for i=1, select("#", ...) do
-			text = text:gsub("<<"..i..">>", select(i, ...))
+		for k,v in pairs(object) do
+			text = text:gsub("<<"..tostring(k)..">>", type(v)=="number" and RB.Dec(v) or tostring(v))
 		end
 	end
+	text	= sprintf("|cff%s%s|r", RB.RGB2HEX(r, g, b), text)
 	return tostring(text)
 end
 
@@ -803,6 +830,38 @@ function RB.GetBankItemCount(item, IsOnly)
 		total = total + (name==item and count or 0)
 	end
 	return total
+end
+
+function RB.GetSkillBookIndexes(skillName)
+	for tab = 1, 5 do
+		local numSkills = GetNumSkill(tab)
+		if numSkills then
+			for skill = 1, numSkills do
+				local name, _, icon, _, rank, type, upgradeCost, isSkillable, isAvailable = GetSkillDetail(tab, skill)
+				if name==skillName or string.find(name, skillName) then
+					return tab, skill, isAvailable
+				end
+			end
+		end
+	end
+	return nil, nil, false
+end
+
+function RB.Lang(name, token, replace)
+	local name 	= tostring(name):upper()
+	local token	= tostring(token):upper()
+	local text	= sprintf("lang[%s_%s]", name, token)
+	if RB.lang[name] and type(RB.lang[name])=="table" and RB.lang[name][token] then
+		text	= RB.lang[name][token]
+	elseif RB.lang[name] and type(RB.lang[name])=="string" then
+		text	= RB.lang[name]
+	elseif RB.lang[name.."_"..token] and type(RB.lang[name.."_"..token])=="string" then
+		text	= RB.lang[name.."_"..token]
+	end
+	if replace and type(replace)=="table" then
+		text	= RB.Format(text, replace)
+	end
+	return text
 end
 
 function RB.Separator()

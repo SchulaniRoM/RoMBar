@@ -59,8 +59,8 @@ local function UpdateIcon()
 		ME.actions.LBUTTON.text			= RB.lang.MOUNT_NORIDE
 		ME.actions.RBUTTON.disabled	= true
 	elseif mounted then
-		ME.icon											= icon
-		RB.settings.lastMount				= icon
+		ME.icon											= icon:gsub("\\", "/")
+		RB.settings.lastMount				= ME.icon
 		ME.actions.LBUTTON.text			= RB.lang.MOUNT_DISMOUNT
 		ME.actions.RBUTTON.disabled = true
 	elseif ME.numMounts>0 then

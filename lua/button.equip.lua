@@ -3,21 +3,55 @@
 local RB = _G.RoMBar
 local ME = {
 	icon			= {"Interface/gameicon/gameicon", 0.25, 0.375, 0.5, 0.625},
-	events		= {"PLAYER_EQUIPMENT_UPDATE", "PLAYER_BAG_CHANGED", "BAG_ITEM_UPDATE", "STORE_OPEN"},
+	events		= {"PLAYER_EQUIPMENT_UPDATE", "PLAYER_BAG_CHANGED", "BAG_ITEM_UPDATE", "STORE_OPEN", "TP_EXP_UPDATE"},
+	blacklist = {
+		[221396] = 1, [221397] = 1, [221398] = 1, [221399] = 1,
+		[221400] = 1, [221401] = 1, [221402] = 1, [221403] = 1,
+	},
+	slots			= {},
 }
 
+local function SwapAmulet(slot, name)
+	if slot and type(slot)=="number" then
+		UseEquipmentItem(slot)
+		ME.slots[slot] = name
+		RB.RegisterEvent(ME.name, "ONUPDATE", SwapAmulet)
+	elseif slot=="ONUPDATE" then
+		RB.UnregisterEvent(ME.name, "ONUPDATE")
+		for i=18,20 do
+			local name = ME.slots[i] or nil
+			RB.Debug(ME.name, "-->", name)
+			if name and GetCountInBagByName(name)>0 then
+				UseItemByName(name)
+			end
+			ME.slots[i] = nil
+		end
+	end
+end
+
 function ME.Update(event, ...)
+	RB.Debug(ME.name, event)
 	local aInv,aBag,dura	= 0, 0, 0
 	local _,_,aName				= GetInventoryItemDurable("player", 9)
 	if aName then
 		aInv,aBag			= GetInventoryItemCount("player", 9), GetCountInBagByName(aName)
-		if event=="PLAYER_BAG_CHANGED" and RB.settings["autoEquipAmmo"]==true and aInv<999 and aBag>0 and not CharacterFrame:IsVisible() then
+		if event=="PLAYER_BAG_CHANGED" and RB.settings.autoEquipAmmo==true and aInv<999 and aBag>0 and not CharacterFrame:IsVisible() then
 			UseItemByName(aName)
 			aInv,aBag		= GetInventoryItemCount("player", 9), GetCountInBagByName(aName)
 		end
 	end
-	for i = 0, 16 do
-		if i~=9 then
+	for i = 0, 20 do
+		if i>=18 then
+			if RB.settings.autoSwapAmulets==true then
+				local _,_,iName, dVal, dMax = GetInventoryItemDurable("player", i)
+				if iName and ME.blacklist[name]==nil and ME.slots[i]~=iName then
+					if dMax>0 and dVal==dMax then
+						RB.Debug(ME.name, iName, dVal, dMax)
+						SwapAmulet(i, iName)
+					end
+				end
+			end
+		elseif i~=9 and i~=17 then
 			local dVal, dMax, iName = GetInventoryItemDurable("player", i)
 			if iName then
 				dura			= ((dura==0 and 1 or dura) + (1 / dMax * math.min(dVal, dMax))) / 2

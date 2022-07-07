@@ -4,7 +4,7 @@ local RB = _G.RoMBar
 local ME = {
 	icon			= {"Interface/gameicon/gameicon", 0.5, 0.625, 0.25, 0.375},
 	events		= {
-		"PLAYER_BAG_CHANGED", "BAG_ITEM_UPDATE",
+		"PLAYER_BAG_CHANGED", "BAG_ITEM_UPDATE", "BANK_CAPACITY_CHANGED",
 		"MAIL_SHOW",		"AUCTION_OPEN",		"BANK_OPEN",	"STORE_OPEN",
 		"MAIL_CLOSED",	"AUCTION_CLOSE",	"BANK_CLOSE",	"STORE_CLOSE"},
 }

@@ -39,6 +39,8 @@ function ME.ShowDropDown(anchor, handler)
 	UIDropDownMenu_Initialize(ME.GetDropDownFrame(), handler, "MENU")
 	UIDropDownMenu_SetAnchor(ME.GetDropDownFrame(), offsetX, offsetY, point, relativePoint, relativeTo)
 	ToggleDropDownMenu(ME.GetDropDownFrame())
+	ME.GetDropDownFrame():SetBackdrop(RB.Backdrop())
+	ME.GetDropDownFrame():SetScale(RB.settings.tooltipScale/100)
 	anchor:Hide()
 end
 

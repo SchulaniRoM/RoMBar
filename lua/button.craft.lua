@@ -3,6 +3,7 @@
 local RB = _G.RoMBar
 local ME = {
 	icon			= {"Interface/gameicon/gameicon", 0.375, 0.5, 0.375, 0.5},
+	events		= {"CRAFT_UNLOCK"},
 }
 
 function ME.Update(this)

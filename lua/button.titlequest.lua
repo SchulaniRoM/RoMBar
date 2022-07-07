@@ -18,26 +18,37 @@ function ME.Init()
 		AchievementTitleFrame:Hide()
 		tTotal = GetTitleCount()
 	end
-	if tTotal==0 then return "" end
-	RB.Debug("titles", tTotal)
-	ME.titles	= {}
-	for i=0,tTotal-1 do
-		_, tid, geted			= GetTitleInfoByIndex(i)		-- name, titleID, geted, icon, classify1, classify2, note, brief, rare = GetTitleInfoByIndex( index )
-		if tid>0 then
-			ME.titles[tid]	= i
+	if tTotal>0 then
+		RB.Debug("titles", tTotal)
+		ME.titles	= {}
+		for i=0, tTotal do
+			_,tid	= GetTitleInfoByIndex(i)		-- name, titleID, geted, icon, classify1, classify2, note, brief, rare = GetTitleInfoByIndex( index )
+			if tid and tid>0 then
+				ME.titles[tid]	= i
+			end
 		end
 	end
 	return true
 end
 
 function ME.GetTitle(id)
-	local title = RB.lang.NOTITLE
+	local title, icon, text = RB.lang.NOTITLE, "interface/icons/quest_paperstack03", ""
 	if ME.titles[id] then
-		title = GetTitleInfoByIndex(ME.titles[id])
+		local name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id])
+		if geted then
+			if name=="???" then
+				AchievementTitleFrame:Show()
+				AchievementTitleFrame:Hide()
+				name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id])
+			end
+			title = name
+			icon	= ico
+			text	= note
+		end
 	elseif id==DF_CA_HT_CUSPMIZE then
 		title = GetCusomizeTitle()	-- misspelling is correct
 	end
-	return title
+	return title, icon, text
 end
 
 function ME.Update(event, ...)
@@ -45,31 +56,27 @@ function ME.Update(event, ...)
 	local title						= ME.GetTitle(GetCurrentTitle())
 
 	RB.settings.titleList	= RB.settings.titleList or {}
-	RB.settings.titleList[GetCurrentTitle()] = true
+	if GetCurrentTitle()>0 then
+		RB.settings.titleList[GetCurrentTitle()] = true
+	end
 
 	RB.UpdateButtonText(ME.name,
 		sprintf("%s: %s%s%s", RB.lang.DQUEST, RB.ColorByPercent(dVal, dMax, true, dVal), RB.Separator(), dMax),
-		title or RB.lang.NOTITLE
+		title
 	)
 end
 
 function ME.Tooltip(tooltip)
 	-- titles
 	local tNum, tTotal = 0, GetTitleCount()
-	RB.settings.titleList	= RB.settings.titleList or {}
 	for i=0,tTotal-1 do
-		local name, id, flag = GetTitleInfoByIndex(i)
-		tNum = tNum + (flag==true and 1 or 0)
-		if RB.settings.titleList[id] then
-			tooltip:AddLine(name)
-		end
+		_,_,geted			= GetTitleInfoByIndex(i)		-- name, titleID, geted, icon, classify1, classify2, note, brief, rare = GetTitleInfoByIndex( index )
+		tNum = tNum + (geted and 1 or 0)
 	end
 	tooltip:AddDoubleLine(
 		RB.lang.TITLE,
 		sprintf("%s%s%s", RB.ColorByPercent(tNum, tTotal), RB.Separator(), RB.Dec(tTotal))
 	)
-	tooltip:AddSeparator()
-
 	-- cards
 	local cNum, cTotal = 0, 0
 	for i=0,15 do
@@ -90,8 +97,27 @@ end
 
 function ME.Click(key, tooltip)
 	if key=="LBUTTON" then
+		RB.modules.dropdown.ShowDropDown(tooltip, ME.DropDownHandler)
 	elseif key=="RBUTTON" then
 	elseif key=="MBUTTON" then
+	end
+end
+
+local function ChangeTitle(this)
+	local id = this.value
+	SetTitleRequest(this.value)
+	CloseDropDownMenus()
+end
+
+function ME.DropDownHandler()
+	local DD = RB.modules.dropdown
+	if (UIDROPDOWNMENU_MENU_LEVEL or 1)==1 then
+		DD.AddTitle(RB.lang[ME.name:upper().."_TITLE"])
+		DD.AddCheckBox(RB.lang.NOTITLE, not GetCurrentTitle(), 0, ChangeTitle)
+		RB.settings.titleList	= RB.settings.titleList or {}
+		for id,_ in pairs(RB.settings.titleList) do
+			DD.AddCheckBox(ME.GetTitle(id), GetCurrentTitle()==id, id, ChangeTitle)
+		end
 	end
 end
 

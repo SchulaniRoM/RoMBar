@@ -15,7 +15,7 @@ function ME.Update(event, txt)
 	RB.UpdateButtonText("mail",
 		nil,
 		nil,
-		sprintf("|cff00ff00%s|r", RB.settings["mail"]>0 and tostring(RB.settings["mail"]) or "")
+		sprintf("|cffffffff%s|r", RB.settings.mail>0 and tostring(RB.settings.mail) or "")
 	)
 end
 
@@ -42,12 +42,10 @@ end
 function ME.Tooltip(tooltip)
 	for k,v in pairs({201136}) do
 		local cBag, cBank	= GetBagItemCount(v), RB.GetBankItemCount(v)
--- 		if cBag+cBank>0 then
-			tooltip:AddDoubleLine(
-				RB.ColorByRarity(v, TEXT("Sys"..v.."_name")),
-				sprintf("%s%s%s", cBag>0 and RB.Dec(cBag) or "", cBag>0 and cBank>0 and RB.Separator() or "", cBank>0 and RB.Dec(cBank) or "")
-			)
--- 		end
+		tooltip:AddDoubleLine(
+			RB.ColorByRarity(v, TEXT("Sys"..v.."_name")),
+			sprintf("%s%s%s", RB.Dec(cBag or 0), cBag>0 and cBank>0 and RB.Separator() or "", cBank>0 and RB.Dec(cBank) or "")
+		)
 	end
 end
 

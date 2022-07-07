@@ -12,8 +12,8 @@ local teleport = {
 		540191,	-- Reifort
 		540192,	-- Tal der Vorbereitung
 		540193,	-- Heffnerlager
-		540194,	-- Kodexbuch
 		540001,	-- Rückruf
+		540194,	-- Kodexbuch
 	},
 	items = {
 		{ 208786, 208787, 208788, 203784 },	-- Gildenburg-Transportstein (30/14/7 Tage, einzeln)
@@ -53,11 +53,56 @@ end
 
 function ME.Click(key, tooltip)
 	if key=="LBUTTON" then
-		ToggleUIFrame(WorldMapFrame)
-	elseif key=="RBUTTON" then
-	elseif key=="MBUTTON" then
 		ToggleUIFrame(TeleportBook)
+	elseif key=="RBUTTON" then
+		RB.modules.dropdown.ShowDropDown(tooltip, ME.DropDownHandler)
+	elseif key=="MBUTTON" then
 	end
 end
+
+function ME.DropDownHandler()
+	local DD = RB.modules.dropdown
+	if (UIDROPDOWNMENU_MENU_LEVEL or 1)==1 then
+		DD.AddTitle(RB.lang.TIMETRAVEL_TELEPORT)
+		for _,cID in pairs(teleport.casts) do
+			local cast		= TEXT("Sys"..cID.."_name")
+			local page,id	= RB.GetSkillBookIndexes(cast)
+			if page and id then
+				local name, _, icon, _, rank, type, upgradeCost, isSkillable, isAvailable = GetSkillDetail(page,id)
+				local cooldown, remaining = GetSkillCooldown(page, id)
+				local text
+				if cID==540001 and RB.settings.recallLocation then
+					text 		= remaining>0 and sprintf("%s%s (%s)", cast, ": "..RB.settings.recallLocation or "", os.date("%Mm%Ss", remaining)) or cast
+				else
+					text 		= remaining>0 and sprintf("%s (%s)", cast, os.date("%Mm%Ss", remaining)) or cast
+				end
+				local func		= not isAvailable or remaining>0 and nil or function(this) CloseDropDownMenus() CastSpellByName(this.value) end
+				local tooltip = not isAvailable and RB.lang.TIMETRAVEL_NOTELEPORT or nil,
+				DD.AddButton(text, func, cast, tooltip)
+			end
+		end
+		DD.AddSeparator()
+		for _,lst in ipairs(teleport.items) do
+			for _,iID in ipairs(lst) do
+				local cnt = GetBagItemCount(iID)
+				if cnt>0 then
+					local name	= TEXT("Sys"..iID.."_name")
+					DD.AddButton(sprintf("%s (%d)", RB.ColorByRarity(iID, name), cnt), function(this) UseItemByName(this.value) end, name)
+					break
+				end
+			end
+		end
+	end
+end
+
+function ME.SpeakFrame_AddOption(string, script, type, iconid, id, highlight)
+	local text	= string or ""
+	local oFunc = RB.GetOriginalFunction(_G, "SpeakFrame_AddOption")
+	if string.find(text, TEXT("SC_111256_S")) or string.find(text, TEXT("SO_110561_5")) then
+		script	= function(t,i) script(t,i) RB.settings.recallLocation = GetZoneName() end
+	end
+	oFunc(string, script, type, iconid, id, highlight)
+end
+RB.Hook(_G, "SpeakFrame_AddOption", ME.SpeakFrame_AddOption)
 
 RB.RegisterButton("timetravel", ME)

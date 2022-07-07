@@ -13,11 +13,6 @@ local ME = {
 function ME.Icon()
 	local mToken, sToken	= UnitClassToken("player")
 	if mToken and mToken~="" then
-		if sToken and sToken~="" then
-			return {sprintf("Interface/widgeticons/classicon_%s_%s.tga", mToken, sToken)}
-		else
-			return {sprintf("Interface/widgeticons/classicon_%s.tga", mToken)}
-		end
 	end
 	return ""
 end
@@ -36,12 +31,19 @@ function ME.Update(event, ...)
 	local cTP, mTP	= GetTpExp(), GetTotalTpExp()
 	local dXP, dTP 	= GetPlayerExpDebt()
 	local percent		= 100/mXP*cXP
-	RB.Debug("updating player", mToken, mLevel)
-	RB.UpdateButtonIcon(ME.name)
 	RB.UpdateButtonText(ME.name,
 		{RB.ColorByClass(mToken, mClass.." "..mLevel), RB.ColorByClass(sToken, sClass.." "..sLevel)},
 		{dXP>0 and RB.ColorPosNeg(dXP) or nil, RB.ColorByPercent(cXP, mXP), RB.Dec(mXP), RB.ColorByPercent(cXP, mXP, false, sprintf("%d%%", percent))}
 	)
+	local oldIcon		= ME.icon
+	if sToken and sToken~="" then
+		ME.icon = sprintf("Interface/widgeticons/classicon_%s_%s.tga", mToken, sToken)
+	else
+		ME.icon = sprintf("Interface/widgeticons/classicon_%s.tga", mToken)
+	end
+	if oldIcon~=ME.icon then
+		RB.UpdateButtonIcon(ME.name)
+	end
 end
 
 function ME.Tooltip(tooltip)

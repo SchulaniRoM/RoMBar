@@ -24,7 +24,7 @@ local function ToggleValue(this)
 	end
 	if var=="useWoWColors" then RB.OnEvent("UPDATE_COLORS_ROMWOW") end
 	if var=="originalAB" and RB.settings.orininalAB then CloseAllWindows() ReloadUI() end
-	UIDropDownMenu_Refresh(RB.modules.dropdown.GetDropDownFrame())
+-- 	UIDropDownMenu_Refresh(RB.modules.dropdown.GetDropDownFrame())
 end
 
 local function SetValue(this)
@@ -60,7 +60,7 @@ function ME.DropDownHandler()
 			DD.AddCheckBox("Debug", RB.settings.debug, "debug", ToggleValue)
 		elseif UIDROPDOWNMENU_MENU_VALUE==2 then
 			DD.AddCheckBox(RB.lang.CONFIG_AUTOREPAIR, RB.settings.autoRepair, "autoRepair", ToggleValue)
-			DD.AddCheckBox(RB.lang.CONFIG_AUTOSNOOP, RB.settings.autoSnoop, "autoSnoop", ToggleValue)
+			DD.AddCheckBox(RB.lang.CONFIG_SKIPDIALOGS, RB.settings.skipDialogs, "skipDialogs", ToggleValue)
 			DD.AddSeparator()
 			DD.AddCheckBox(RB.lang.CONFIG_FRIENDPARTY, RB.settings.acceptPartyFriend, "acceptPartyFriend", ToggleValue)
 			DD.AddCheckBox(RB.lang.CONFIG_GUILDPARTY, RB.settings.acceptPartyGuild, "acceptPartyGuild", ToggleValue)
@@ -68,6 +68,7 @@ function ME.DropDownHandler()
 			DD.AddCheckBox(RB.lang.CONFIG_GUILDRIDE, RB.settings.acceptRideGuild, "acceptRideGuild", ToggleValue)
 			DD.AddCheckBox(RB.lang.CONFIG_DECLINEDUELL, RB.settings.declineDuel, "declineDuel", ToggleValue)
 			DD.AddSeparator()
+			DD.AddCheckBox(RB.lang.CONFIG_AUTOAMULET, RB.settings.autoSwapAmulets, "autoSwapAmulets", ToggleValue)
 			DD.AddCheckBox(RB.lang.CONFIG_AUTOAMMO, RB.settings.autoEquipAmmo, "autoEquipAmmo", ToggleValue)
 			DD.AddCheckBox(RB.lang.CONFIG_FRIENDSYNC, RB.settings.friendSync, "friendSync", ToggleValue)
 		end
