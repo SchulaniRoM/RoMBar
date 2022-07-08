@@ -31,9 +31,10 @@ local defaultsPerChar = {
 	autoQuestComplete	= true,		-- module.dialogs
 	recallLocation		= "",			-- button.timetravel
 	autoSwapAmulets		= true,		-- button.equip
+	bossBell					= true,		-- button.titlequest
 }
 
 local buttons		= {{"macro", "player", "craft"}, {"mount", "pet", "titlequest", "equip", "social", "money", "lootit", "bag", "mail", "timetravel", "config"}}
-local modules		= {"dropdown", "dialogs", "events"}
+local modules		= {"dropdown", "dialogs", "events", "macro"}
 
 return defaultsPerChar, buttons, modules

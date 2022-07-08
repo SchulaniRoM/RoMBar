@@ -11,18 +11,16 @@ function ME.Update(this)
 	for _,skill in pairs({"MINING", "LUMBERING", "HERBLISM"}) do
 		local sVal, sMax = GetPlayerCurrentSkillValue(skill), GetPlayerMaxSkillValue(skill)
 		local high, low = math.modf(sVal)
-		if sVal==sMax then
+		if sMax>0 and sVal==sMax then
 			gather[skill] = RB.ColorByQuality(sMax-1, sMax)
 		elseif sVal>=1 then
 			gather[skill] = sprintf("%s:%s", RB.ColorByQuality(sMax-1, high), RB.ColorByPercent(sMax-high, 20, false, sprintf("%d%%", low*100)))
-		else
-			gather[skill] = "-:-"
 		end
 	end
 
 	RB.UpdateButtonText(ME.name,
-		{gather["MINING"], gather["LUMBERING"], gather["HERBLISM"]}
--- 		{gather[highest[1]], gather[highest[2]], gather[highest[3]]}
+		{gather["MINING"], gather["LUMBERING"], gather["HERBLISM"]},
+		{unpack(gather["LEGEND"] or {}), unpack(gather["MASTER"] or {}), unpack(gather["EXPERT"] or {})}
 	)
 end
 

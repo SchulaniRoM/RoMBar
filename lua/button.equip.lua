@@ -58,11 +58,19 @@ function ME.Update(event, ...)
 			end
 		end
 	end
-	RB.UpdateButtonText(ME.name,
-		sprintf("%s: %s", RB.lang.DURA, RB.ColorByPercent(dura, 1, false, sprintf("%s%%", RB.Dec(math.floor(100*dura))))),
-		aName and sprintf("%s: %s%s%s", RB.lang.AMMO, RB.ColorByPercent(aInv, 999, false, aInv), RB.Separator(), RB.Dec(aBag)) or RB.lang.NOAMMO,
-		RB.ColorByName("yellow", GetEuipmentNumber())
-	)
+	if aName then
+		RB.UpdateButtonText(ME.name,
+			sprintf("%s: %s", RB.lang.DURA, RB.ColorByPercent(dura, 1, false, sprintf("%s%%", RB.Dec(math.floor(100*dura))))),
+			sprintf("%s: %s%s%s", RB.lang.AMMO, RB.ColorByPercent(aInv, 999, false, aInv), RB.Separator(), RB.Dec(aBag)),
+			RB.ColorByName("white", GetEuipmentNumber())
+		)
+	else
+		RB.UpdateButtonText(ME.name,
+			sprintf("%s: %s", RB.lang.DURA, RB.ColorByPercent(dura, 1, false, sprintf("%s%%", RB.Dec(math.floor(100*dura))))),
+			nil,
+			RB.ColorByName("white", GetEuipmentNumber())
+		)
+	end
 end
 
 function ME.STORE_OPEN()

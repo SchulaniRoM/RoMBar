@@ -3,7 +3,7 @@
 local RB = _G.RoMBar
 local ME = {
 	icon			= {"Interface/gameicon/gameicon", 0, 0.125, 0.125, 0.25},
-	events		= {"LOADING_END", "RESET_QUESTTRACK", "PLAYER_TITLE_ID_CHANGED"},
+	events		= {"LOADING_END", "RESET_QUESTTRACK", "PLAYER_TITLE_ID_CHANGED", "ELITE_BOSS_BELL"},
 	actions		= {
  		MBUTTON	= {func = function() ToggleUIFrame(AchievementTitleFrame) end},
 		RBUTTON	= {func = function() ToggleUIFrame(UI_QuestBook) end},
@@ -61,9 +61,28 @@ function ME.Update(event, ...)
 	end
 
 	RB.UpdateButtonText(ME.name,
-		sprintf("%s: %s%s%s", RB.lang.DQUEST, RB.ColorByPercent(dVal, dMax, true, dVal), RB.Separator(), dMax),
+		{sprintf("%s: %s", RB.lang.DQUEST, RB.ColorByPercent(dVal, dMax, true, dVal)), dMax},
 		title
 	)
+end
+
+function ME.ELITE_BOSS_BELL(event, msg, ...)
+	if RB.settings.bossBell==true then
+		RB.Debug(ME.name, event, msg, ...)
+		local m				= GetCurrentWorldMapID()
+		local x, y		= GetPlayerWorldMapPos(m)
+		local object	= {
+			name		= msg:gsub("Ihr seid(.*)schon sehr nahe gekommen. Seid bitte vorsichtig!", "%1"),
+			x				= math.floor(1000*x)/10,
+			y				= math.floor(1000*y)/10,
+			zone		= GetZoneName(),
+			channel	= GetCurrentParallelID() or 1,
+		}
+		object.name = object.name:match("^[%s%c]*(.-)[%s%c]*$")
+		if object.name and object.name~="" then
+			SendChatMessage(RB.Format(RB.lang.BOSS_BELL, object), "guild")
+		end
+	end
 end
 
 function ME.Tooltip(tooltip)

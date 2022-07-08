@@ -27,8 +27,12 @@ function ME.Update(event, ...)
 	local ping	= math.floor(GetPing() or 0)
 	local mem		= math.floor((collectgarbage("count") or 0)/1024)
 	RB.UpdateButtonText(ME.name,
-		sprintf("%s%s%s", os.date(RB.lang.DATE_STRING), RB.Separator(), os.date(RB.lang.TIME_STRING)),
- 		sprintf("%s: %s%s%s: %s%s%s: %sMB", RB.lang["FPS"], RB.ColorByPercent(fps, 60, false, fps), RB.Separator(), RB.lang["PING"], RB.ColorByPercent(ping, 120, true, ping), RB.Separator(), RB.lang["MEMORY"], RB.Dec(mem))
+		os and {os.date(RB.lang.DATE_STRING), os.date(RB.lang.TIME_STRING)} or nil,
+ 		{
+			sprintf("%s: %s", RB.lang.FPS, RB.ColorByPercent(fps, 60, false, fps)),
+			sprintf("%s: %s", RB.lang.PING, RB.ColorByPercent(ping, 120, true, ping)),
+			sprintf("%s: %sMB", RB.lang.MEMORY, RB.ColorByPercent(mem, 150, true, mem))
+		}
 	)
 end
 
@@ -97,11 +101,12 @@ end
 
 function ME.SpeakFrame_AddOption(string, script, type, iconid, id, highlight)
 	local text	= string or ""
+	local func	= nil
 	local oFunc = RB.GetOriginalFunction(_G, "SpeakFrame_AddOption")
 	if string.find(text, TEXT("SC_111256_S")) or string.find(text, TEXT("SO_110561_5")) then
-		script	= function(t,i) script(t,i) RB.settings.recallLocation = GetZoneName() end
+		func	= function(t,i) script(t,i) RB.settings.recallLocation = GetZoneName() end
 	end
-	oFunc(string, script, type, iconid, id, highlight)
+	oFunc(string, func or script, type, iconid, id, highlight)
 end
 RB.Hook(_G, "SpeakFrame_AddOption", ME.SpeakFrame_AddOption)
 

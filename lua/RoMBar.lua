@@ -248,9 +248,9 @@ function RB.SAVE_VARIABLES()
 end
 
 function RB.WARNING_MEMORY()
-	if StaticPopupDialogs["WARNING_MEMORY"]:IsVisible() then
-		ClickRequestDialogButton(0)
-	end
+-- 	if StaticPopupDialogs["WARNING_MEMORY"]:IsVisible() then
+-- 		ClickRequestDialogButton(0)
+-- 	end
 	RB.Print(TEXT("SYSTEM_WARNING_MEMORY"))
 end
 
@@ -543,10 +543,11 @@ function RB.RegisterButton(name, object)
 	object.index							= index
 	object.loaded							= true
 	object.initialized				= false
+	object.title							= object.title or RB.Lang(name, "TITLE")
 	object.actions						= object.actions or {}
-	object.actions.LBUTTON		= object.actions.LBUTTON or (RB.lang[name:upper().."_LCLICK"] and {func = button.Click, disabled = false} or {disabled = true})
-	object.actions.MBUTTON		= object.actions.MBUTTON or (RB.lang[name:upper().."_MCLICK"] and {func = button.Click, disabled = false} or {disabled = true})
-	object.actions.RBUTTON		= object.actions.RBUTTON or (RB.lang[name:upper().."_RCLICK"] and {func = button.Click, disabled = false} or {disabled = true})
+	object.actions.LBUTTON		= object.actions.LBUTTON or (RB.Lang(name, "LCLICK", nil, false) and {func = button.Click, disabled = false} or {disabled = true})
+	object.actions.MBUTTON		= object.actions.MBUTTON or (RB.Lang(name, "MCLICK", nil, false) and {func = button.Click, disabled = false} or {disabled = true})
+	object.actions.RBUTTON		= object.actions.RBUTTON or (RB.Lang(name, "RCLICK", nil, false) and {func = button.Click, disabled = false} or {disabled = true})
 	RB.buttonHolder[index]		= object
 	return RB, object
 end
@@ -618,20 +619,21 @@ function RB.ShowTooltip(event, frame)
 	local button, name, index	= RB.GetButton(frame)
 	if event=="ONLEAVE" or not button or frame==nil then return RoMBarTooltip:Hide() end
 
-	local tooltip, name, B, T, L, R, X, Y = RoMBarTooltip, name:upper()
-	local bX, bY = button.frame:GetLeft(), button.frame:GetTop()
-	if bY>GetScreenHeight()/2 	then	T, B, Y	= "TOP", "BOTTOM", -5	else	T, B, Y	= "BOTTOM", "TOP", 5	end
-	if bX<GetScreenWidth()-250	then	L, R, X	= "LEFT", "RIGHT", 0	else	L, R, X	= "RIGHT", "LEFT", 0		end
+	if button.actions then
+		local tooltip, name, B, T, L, R, X, Y = RoMBarTooltip, name:upper()
+		local bX, bY = button.frame:GetLeft(), button.frame:GetTop()
+		if bY>GetScreenHeight()/2 	then	T, B, Y	= "TOP", "BOTTOM", -5	else	T, B, Y	= "BOTTOM", "TOP", 5	end
+		if bX<GetScreenWidth()-250	then	L, R, X	= "LEFT", "RIGHT", 0	else	L, R, X	= "RIGHT", "LEFT", 0		end
 
-	if RB.lang[name..'_TITLE'] then
 		RB.Debug("Tooltip", frame, name, index, B..L, T..L, X, Y)
 
 		tooltip:ClearAllAnchors()
 		tooltip:SetBackdrop(RB.Backdrop())
 		tooltip:SetScale(RB.settings.tooltipScale/100)
 		tooltip:SetAnchor(B..L, T..L, button.frame, X, Y)
-		tooltip:SetText(RB.ColorByName("yellow", RB.lang[name..'_TITLE']))
+		tooltip:SetText(RB.ColorByName("yellow", button.title))
 		tooltip:AddSeparator(1, 1, 1)
+		tooltip:Show()
 
 		if button.Tooltip then
 			button.Tooltip(tooltip)
@@ -640,15 +642,28 @@ function RB.ShowTooltip(event, frame)
 
 		for c,b in pairs({LCLICK = "LBUTTON", RCLICK = "RBUTTON", MCLICK = "MBUTTON"}) do
 			if button.actions[b] and not button.actions[b].disabled then
-				tooltip:AddDoubleLine(RB.ColorByName("LIGHT_BLUE", RB.lang[c]), RB.ColorByName("LIGHT_BLUE", button.actions[b].text or RB.lang[name.."_"..c]))
+				tooltip:AddDoubleLine(RB.ColorByName("LIGHT_BLUE", RB.Lang(c)), RB.ColorByName("LIGHT_BLUE", button.actions[b].text or RB.Lang(name, c)))
 			end
 		end
 
-		tooltip:Show()
 		CloseDropDownMenus()
 	else
 		tooltip:SetScale(1)
 		tooltip:Hide()
+	end
+end
+
+function RB.AddToTooltip(left, right)
+	if left=="---" then
+		RoMBarTooltip:AddSeparator()
+	else
+		left	= left and (type(left)=="table" and TableJoin(left) or tostring(left)) or ""
+		right	= right and (type(right)=="table" and TableJoin(right) or tostring(right)) or ""
+		if left and right then
+			RoMBarTooltip:AddDoubleLine(left, right)
+		elseif left then
+			RoMBarTooltip:AddLine(left)
+		end
 	end
 end
 
@@ -703,13 +718,31 @@ end
 
 function RB.Format(text, object, r, g, b)
 	if text and type(text)=="string" and text~="" then
+		for k,v in ipairs(object) do
+			text = text:gsub("<<"..tostring(k)..">>", type(v)=="number" and RB.Dec(v) or tostring(v))
+		end
 		for k,v in pairs(object) do
 			text = text:gsub("<<"..tostring(k)..">>", type(v)=="number" and RB.Dec(v) or tostring(v))
 		end
 	end
 	text	= sprintf("|cff%s%s|r", RB.RGB2HEX(r, g, b), text)
-	return tostring(text)
+	return text
 end
+
+-- function RB.TimeFormat(time)
+-- 	if time==nil or time<=0 then
+-- 		return ""
+-- 	else
+-- 		local day			= math.floor(time / 60 / 24)
+-- 		local hour		= math.floor((time - (day * 60 * 24)) / 60)
+-- 		local minute	= time - (day * 60 * 24) - (hour * 60)
+-- 		if day>365 then
+-- 			return ""
+-- 		else
+-- 			return sprintf(BANK_LETTIME_MSG, day, hour, minute)
+-- 		end
+-- 	end
+-- end
 
 function RB.RGB2HEX(arg1, arg2, arg3)
 	local r	= tonumber(type(arg1)=="table" and (arg1.r~=nil and arg1.r or arg1[1]) or arg1)
@@ -723,7 +756,7 @@ end
 
 function RB.Dec(value)
 	local val = MoneyNormalization(math.abs(value))
-	return value<0 and RB.ColorByName("red", val) or val
+	return value<0 and RB.ColorByName("red", "-"..val) or val
 end
 
 function RB.ColorByClass(class, text)
@@ -763,7 +796,8 @@ function RB.ColorByRarity(index, text)
 		end
 	end
 	local color	= RB.colors.rarity[index<=10 and math.floor(index) or GetQualityByGUID(index)]
-	return sprintf("|cff%s%s", color or "ffffff", text and tostring(text).."|r" or "")
+	text	= text and (type(text)=="number" and RB.Dec(text) or tostring(text)) or nil
+	return sprintf("|cff%s%s%s", color or "ffffff", text and text or "", text and "|r" or "")
 end
 
 function RB.ColorByQuality(value, text)
@@ -790,6 +824,7 @@ function RB.ColorByName(cName, text)
 			GOLD					= {0.90,	0.90,	0.10},
 			DIAMOND				= {0.10,	0.90,	0.90},
 			RUBY					= {0.90,	0.10,	0.10},
+			ARKANE				= {0.90,	0.50,	0.10},
 			RED						= {1.00,	0.00,	0.00},
 			DARK_RED			= {0.50,	0.00,	0.00},
 			LIGHT_RED			= {0.96,	0.60,	0.47}, -- raid chat
@@ -847,18 +882,20 @@ function RB.GetSkillBookIndexes(skillName)
 	return nil, nil, false
 end
 
-function RB.Lang(name, token, replace)
-	local name 	= tostring(name):upper()
-	local token	= tostring(token):upper()
-	local text	= sprintf("lang[%s_%s]", name, token)
+function RB.Lang(name, token, replace, default)
+	local name 	= tostring(name or ""):upper()
+	local token	= tostring(token or ""):upper()
+	local text	= sprintf("%s:%s.%s", RB.lang._lang, name, token)
 	if RB.lang[name] and type(RB.lang[name])=="table" and RB.lang[name][token] then
 		text	= RB.lang[name][token]
-	elseif RB.lang[name] and type(RB.lang[name])=="string" then
-		text	= RB.lang[name]
 	elseif RB.lang[name.."_"..token] and type(RB.lang[name.."_"..token])=="string" then
 		text	= RB.lang[name.."_"..token]
+	elseif token=="" and RB.lang[name] and type(RB.lang[name])=="string" then
+		text	= RB.lang[name]
+	elseif default~=nil then
+		return default
 	end
-	if replace and type(replace)=="table" then
+	if replace and type(replace)=="table" and text:find("<<") then
 		text	= RB.Format(text, replace)
 	end
 	return text

@@ -10,13 +10,6 @@ local ME = {
 	},
 }
 
-function ME.Icon()
-	local mToken, sToken	= UnitClassToken("player")
-	if mToken and mToken~="" then
-	end
-	return ""
-end
-
 function ME.Update(event, ...)
 	local mClass, sClass	= UnitClass("player")
 	local mToken, sToken	= UnitClassToken("player")
@@ -33,7 +26,7 @@ function ME.Update(event, ...)
 	local percent		= 100/mXP*cXP
 	RB.UpdateButtonText(ME.name,
 		{RB.ColorByClass(mToken, mClass.." "..mLevel), RB.ColorByClass(sToken, sClass.." "..sLevel)},
-		{dXP>0 and RB.ColorPosNeg(dXP) or nil, RB.ColorByPercent(cXP, mXP), RB.Dec(mXP), RB.ColorByPercent(cXP, mXP, false, sprintf("%d%%", percent))}
+		{dXP<0 and RB.ColorPosNeg(dXP) or nil, RB.ColorByPercent(cXP, mXP), RB.Dec(mXP), RB.ColorByPercent(cXP, mXP, false, sprintf("%d%%", percent))}
 	)
 	local oldIcon		= ME.icon
 	if sToken and sToken~="" then

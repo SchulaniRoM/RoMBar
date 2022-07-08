@@ -61,6 +61,8 @@ function ME.DropDownHandler()
 		elseif UIDROPDOWNMENU_MENU_VALUE==2 then
 			DD.AddCheckBox(RB.lang.CONFIG_AUTOREPAIR, RB.settings.autoRepair, "autoRepair", ToggleValue)
 			DD.AddCheckBox(RB.lang.CONFIG_SKIPDIALOGS, RB.settings.skipDialogs, "skipDialogs", ToggleValue)
+			DD.AddCheckBox(RB.lang.CONFIG_FRIENDSYNC, RB.settings.friendSync, "friendSync", ToggleValue)
+			DD.AddCheckBox(RB.lang.CONFIG_BOSSBELL, RB.settings.bossBell, "bossBell", ToggleValue)
 			DD.AddSeparator()
 			DD.AddCheckBox(RB.lang.CONFIG_FRIENDPARTY, RB.settings.acceptPartyFriend, "acceptPartyFriend", ToggleValue)
 			DD.AddCheckBox(RB.lang.CONFIG_GUILDPARTY, RB.settings.acceptPartyGuild, "acceptPartyGuild", ToggleValue)
@@ -70,7 +72,6 @@ function ME.DropDownHandler()
 			DD.AddSeparator()
 			DD.AddCheckBox(RB.lang.CONFIG_AUTOAMULET, RB.settings.autoSwapAmulets, "autoSwapAmulets", ToggleValue)
 			DD.AddCheckBox(RB.lang.CONFIG_AUTOAMMO, RB.settings.autoEquipAmmo, "autoEquipAmmo", ToggleValue)
-			DD.AddCheckBox(RB.lang.CONFIG_FRIENDSYNC, RB.settings.friendSync, "friendSync", ToggleValue)
 		end
 	elseif UIDROPDOWNMENU_MENU_LEVEL==3 then
 		if UIDROPDOWNMENU_MENU_VALUE=="tooltipScale" then

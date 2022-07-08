@@ -6,14 +6,20 @@ local ME = {
 	events		= {
 		"PLAYER_BAG_CHANGED", "BAG_ITEM_UPDATE", "BANK_CAPACITY_CHANGED",
 		"MAIL_SHOW",		"AUCTION_OPEN",		"BANK_OPEN",	"STORE_OPEN",
-		"MAIL_CLOSED",	"AUCTION_CLOSE",	"BANK_CLOSE",	"STORE_CLOSE"},
+		"MAIL_CLOSED",	"AUCTION_CLOSE",	"BANK_CLOSE",	"STORE_CLOSE"
+	},
+	actions		= {
+		LBUTTON	= {text = RB.Lang("bag", "BAG"),	func = function() ToggleBackpack() end},
+		RBUTTON	= {text = RB.Lang("bag", "BANK"),	func = function() if TimeLet_GetLetTime("BankLet")<0 then ToggleUIFrame(BankFrame) else OpenBank() end end},
+		MBUTTON	= {text = RB.Lang("bag", "BAG7"),	func = function() ToggleUIFrame(GoodsFrame) end},
+	},
 }
 
 function ME.Update(event, ...)
 	if event=="MAIL_SHOW" or event=="AUCTION_OPEN" or event=="BANK_OPEN" or event=="STORE_OPEN" then
-		ShowUIPanel(BagFrame)
+		return ShowUIPanel(BagFrame)
 	elseif event=="MAIL_CLOSED" or event=="AUCTION_CLOSE" or event=="BANK_CLOSE" or event=="STORE_CLOSE" then
-		HideUIPanel(BagFrame)
+		return HideUIPanel(BagFrame)
 	end
 
 	local numBag, maxBag	= GetBagCount()
@@ -23,13 +29,12 @@ function ME.Update(event, ...)
 		numIsb = numIsb + (count>0 and 1 or 0)
 	end
 	RB.UpdateButtonText(ME.name,
-		sprintf("%s: %s%s%s", RB.lang["BAG"], RB.ColorByPercent(numBag, maxBag, true), RB.Separator(), RB.Dec(maxBag)),
-		sprintf("%s: %s%s%s", RB.lang["ISB"], RB.ColorByPercent(numIsb, maxIsb, true), RB.Separator(), RB.Dec(maxIsb))
+		sprintf("%s: %s%s%s", RB.Lang(ME.name, "BAG_SHORT"), RB.ColorByPercent(numBag, maxBag, true), RB.Separator(), RB.Dec(maxBag)),
+		sprintf("%s: %s%s%s", RB.Lang(ME.name, "BAG7_SHORT"), RB.ColorByPercent(numIsb, maxIsb, true), RB.Separator(), RB.Dec(maxIsb))
 	)
 end
 
 function ME.Tooltip(tooltip)
-	
 	local function format_time(time)
 		if time==nil or time<=0 then
 			return BANK_LET_OVER_TIME
@@ -56,9 +61,9 @@ function ME.Tooltip(tooltip)
 			isLet, time = GetBagPageLetTime(i)
 		end
 		if i<=2 or time>0 or nBag>0 then
-			tooltip:AddDoubleLine(
-				sprintf("%s %d %s", RB.lang.BAG_PAGE1TO6, i, i>2 and format_time(time) or ""),
-				sprintf("%s%s%s", RB.ColorByPercent(nBag, 30, true), RB.Separator(), 30)
+			RB.AddToTooltip(
+				RB.Lang(ME.name, "BAG1TO6", {id = i, time = i>2 and format_time(time) or ""}),
+				{RB.ColorByPercent(nBag, 30, true), 30}
 			)
 		end
 	end
@@ -68,12 +73,9 @@ function ME.Tooltip(tooltip)
 		local _, _, count = GetGoodsItemInfo(i)
 		numIsb = numIsb + ((count>0 and 1) or 0)
 	end
-	tooltip:AddDoubleLine(
-		sprintf("%s", RB.lang["BAG_PAGE7"]),
-		sprintf("%s%s%s", RB.ColorByPercent(numIsb, maxIsb, true), RB.Separator(), maxIsb)
-	)
+	RB.AddToTooltip(RB.Lang(ME.name, "BAG7"), {RB.ColorByPercent(numIsb, maxIsb, true), maxIsb})
+	RB.AddToTooltip("---")
 
-	tooltip:AddSeparator()
 	local numBank = {0,0,0,0,0,0}
 	for i=1, 300 do
 		local page = ((i<=200 and math.floor((i-1)/40) + 1) or 6)
@@ -86,41 +88,24 @@ function ME.Tooltip(tooltip)
 			time = TimeLet_GetLetTime("BankBag"..i)
 		end
 		if i<=1 or (numBank[i]>0 or time>0) then
-			tooltip:AddDoubleLine(
-				sprintf("%s %d %s", RB.lang["BANK_PAGE1TO5"], i,((i>1 and format_time(time)) or "")),
-				sprintf("%s%s%s", RB.ColorByPercent(numBank[i], 40, true), RB.Separator(), 40)
+			RB.AddToTooltip(
+				RB.Lang(ME.name, "BANK1TO5", {id = i, time = i>1 and format_time(time) or ""}),
+				{RB.ColorByPercent(numBank[i], 40, true), 40}
 			)
 		end
 	end
-	tooltip:AddDoubleLine(
-		sprintf("%s", RB.lang["BANK_PAGE6"]),
-		sprintf("%s%s%s", RB.ColorByPercent(numBank[6], 100, true), RB.Separator(), 100)
-	)
-	
-	tooltip:AddSeparator()
+	RB.AddToTooltip(RB.Lang(ME.name, "BANK6"), {RB.ColorByPercent(numBank[6], 100, true), 100})
+	RB.AddToTooltip("---")
+
 	local numArc, maxArc	= 0, ((_G.AMB~=nil and 10) or 5)
 	for i = 51, 50+maxArc do
 		local _, _, count, _ = GetGoodsItemInfo(i)
 		numArc = numArc + ((count>0 and 1) or 0)
 	end
-	tooltip:AddDoubleLine(
-		sprintf("%s", RB.lang["ARCANE_LONG"]),
-		sprintf("%s%s%s", RB.ColorByPercent(numArc, maxArc, true), RB.Separator(), maxArc)
+	RB.AddToTooltip(
+		RB.Lang(ME.name, "ARCANE"),
+		{RB.ColorByPercent(numArc, maxArc, true), maxArc}
 	)
-end
-
-function ME.Click(key, tooltip)
-	if key=="LBUTTON" then
-		ToggleBackpack()
-	elseif key=="RBUTTON" then
-		if TimeLet_GetLetTime("BankLet")<0 then
-			ToggleUIFrame(BankFrame)
-		else
-			OpenMail()
-		end
-	elseif key=="MBUTTON" then
-		ToggleUIFrame(GoodsFrame)
-	end
 end
 
 RB.RegisterButton("bag", ME)

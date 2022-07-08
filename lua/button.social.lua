@@ -40,10 +40,16 @@ function ME.Update(event, ...)
 		local _,_,online	= GetFriendInfo(DF_Socal_Token_Friend, i)
 		fNum = fNum + (online and 1 or 0)
 	end
-	RB.UpdateButtonText(ME.name,
-		IsInGuild() and sprintf("%s: %s%s%s", RB.lang.GUILD, RB.Dec(gNum), RB.Separator(), RB.Dec(gMax)) or RB.lang.NOGUILD,
-		sprintf("%s: %s%s%s", RB.lang.FRIEND, RB.Dec(fNum), RB.Separator(), RB.Dec(fMax))
-	)
+	if IsInGuild() then
+		RB.UpdateButtonText(ME.name,
+			sprintf("%s: %s%s%s", RB.lang.GUILD, RB.Dec(gNum), RB.Separator(), RB.Dec(gMax)),
+			sprintf("%s: %s%s%s", RB.lang.FRIEND, RB.Dec(fNum), RB.Separator(), RB.Dec(fMax))
+		)
+	else
+		RB.UpdateButtonText(ME.name,
+			sprintf("%s: %s%s%s", RB.lang.FRIEND, RB.Dec(fNum), RB.Separator(), RB.Dec(fMax))
+		)
+	end
 end
 
 function ME.Tooltip(tooltip)

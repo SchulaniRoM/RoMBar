@@ -109,7 +109,27 @@ local function CheckQuestListDialog(event, ...)
 	end
 end
 
+function SilentChangeLeaderChannel(event, ...)
+-- GetParalleZonesInfo
+-- GetNumParalleZones
+-- GetNumZoneChannels
+-- IsZoneChannelOnLine
+-- GetCurrentParallelID
+
+	RB.Debug(ME.name, event, ...)
+
+	local currChannel		= GetCurrentParallelID() or 1
+	local name,realChan = GetParalleZonesInfo(currChannel)		-- name, linkedChan
+	if currChannel~=realChan then
+		ChangeParallelID(realChan)
+-- 		if StaticPopupDialogs["LEADER_CHANNEL_CONFIRM"]:IsVisible() then
+-- 			ClickRequestDialogButton(1)
+-- 		end
+	end
+end
+
 function ME.Init()
+	RB.RegisterEvent(ME.name, {"LEADER_CHANNEL_CONFIRM", "PARTY_MEMBER_CHANGED"}, SilentChangeLeaderChannel)
 	RB.RegisterEvent(ME.name, "SHOW_REQUEST_DIALOG", CheckRequestDialogs)
 	RB.RegisterEvent(ME.name, {"SHOW_REQUESTLIST_DIALOG", "SHOW_QUESTLIST", "SHOW_QUESTDETAIL_FROM_NPC"}, CheckQuestListDialog)
 end

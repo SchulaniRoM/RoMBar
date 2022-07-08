@@ -36,9 +36,10 @@ function ME.Update(event, ...)
 	local phirius = RB.ColorByRarity(203038, GetPlayerMoney("billdin") + GetCountInBankByName(TEXT("Sys203038_name")))
 	local diamond	= RB.ColorByName("diamond", GetPlayerMoney("account"))
 	local ruby		= RB.ColorByName("ruby", GetPlayerMoney("bonus"))
+	local arkane	= RB.ColorByName("arkane", GetMagicBoxEnergy())
 	RB.UpdateButtonText(ME.name,
 		RB.ColorByName("gold", RB.Dec(GetPlayerMoney("copper"))),
-		sprintf("%s%s%s%s%s", diamond, RB.Separator(), ruby, RB.Separator(), phirius)
+		{diamond, GetPlayerMoney("bonus")>0 and ruby or nil, phirius, arkane}
 	)
 end
 
@@ -46,27 +47,27 @@ function ME.Tooltip(tooltip)
 	tooltip:AddDoubleLine(RB.lang.GOLD..":", 		RB.ColorByName("gold", GetPlayerMoney("copper")))
 	tooltip:AddDoubleLine(RB.lang.DIAMOND..":", RB.ColorByName("diamond", GetPlayerMoney("account")))
 	tooltip:AddDoubleLine(RB.lang.RUBY..":", 		RB.ColorByName("ruby", GetPlayerMoney("bonus")))
+	tooltip:AddDoubleLine(RB.lang.ARKANE..":",	RB.ColorByName("arkane", GetMagicBoxEnergy()))
 	tooltip:AddSeparator()
 	for _,l in pairs(moneyItems) do
 		local id, group, index, mType = unpack(l)
-		local aVal, aBag, limit, name	= 0, 0, 0
+		local aVal, aBag, aBank, limit, text, name	= 0, 0, 0, 0, ""
 		if group and index then
 			aVal,limit	= GetPlayerPointInfo(group, index, "")
-			aBag				= GetBagItemCount(id)
-		else
-			aVal,limit	= GetBagItemCount(id), 0
 		end
-		if aVal>0 then
-			name					= mType and RB.ColorByRarity(id, TEXT("SYS_MONEY_TYPE_"..mType)) or RB.ColorByRarity(id, TEXT("Sys"..id.."_name"))
-			if limit>0 then
-				aVal				= aBag>0 and RB.ColorByPercent(aVal, limit, true, RB.Dec(aVal).."+"..RB.Dec(aBag)) or RB.ColorByPercent(aVal, limit, true)
-			else
-				aVal				= aBag>0 and RB.Dec(aVal).."+"..RB.Dec(aBag) or RB.Dec(aVal)
+		aBag, aBank	= GetBagItemCount(id), RB.GetBankItemCount(id)
+		if aVal + aBag + aBank > 0 then
+			name	= mType and RB.ColorByRarity(id, TEXT("SYS_MONEY_TYPE_"..mType)) or RB.ColorByRarity(id, TEXT("Sys"..id.."_name"))
+			if aBag>0 or aBank>0 then
+				text	= sprintf("%s + %s", RB.Dec(aBag), RB.Dec(aBank))
 			end
-			tooltip:AddDoubleLine(
-				name,
-				sprintf("%s%s%s", aVal, limit>0 and RB.Separator() or "", limit>0 and RB.Dec(limit) or "")
-			)
+			if aVal>0 then
+				text	= sprintf("%s%s%s", text, #text>0 and " + " or "", limit>0 and RB.ColorByPercent(aVal, limit, true) or RB.Dec(aVal))
+			end
+			if limit>0 then
+				text	= sprintf("%s%s%s", text, RB.Separator(), RB.Dec(limit))
+			end
+			tooltip:AddDoubleLine(name, text)
 		end
 	end
 end
