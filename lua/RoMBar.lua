@@ -2,7 +2,7 @@
 RB = {
 	addonName							= "Extended RoMBar",
 	addonAuthor						= "Schulani & Celesteria@Kerub",
-	addonVersion					= 2.12,
+	addonVersion					= 2.15,
 	addonPath							= "Interface/AddOns/RoMBar",
 	addonSettings					= "RoMBarSettings",
 	addonProfile					= "RoMBarProfile",
