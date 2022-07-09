@@ -15,9 +15,11 @@ local ME = {
 		"UnitIsCasting",
 		"GetNpcID",
 		"GetPosition",
+		"MacroCD",
 		"SH_loot",
 		"SH_unbox",
 	},
+	macroSlots	= {},
 }
 
 function ME.Init()
@@ -58,6 +60,26 @@ function ME.FindString(str, root)
 	RB.Print("--- ende ---")
 end
 
+--[[----------------------------------------------------------------------------------------------
+
+checking buffs and debuffs by ID or name
+
+* syntax:
+		HasBuff(ID or name, [target])
+		HasDebuff(ID or name, [target])
+
+* returns:
+		name		- full name of the buff/debuff
+		id			- id of the buff/debuff
+		count		- number of stacks
+		params	- additional params given by the system
+
+* examples:
+		HasBuff(12345)										- check if player has a buff with the given id
+		HasBuff("mybuffname", "target")		- check if target has a buff with the given name
+
+--]]----------------------------------------------------------------------------------------------
+
 local function CheckBuff(ID_Name, debuff, target)
 	local t, n, d		= target or "player", 0, debuff==true or false
 	local id, name	= type(ID_Name)=="number" and ID_Name or nil, type(ID_Name)=="string" and ID_Name or nil
@@ -78,6 +100,18 @@ function ME.HasBuff(ID_Name, target)
 	return CheckBuff(ID_Name, false, target)
 end
 
+--[[----------------------------------------------------------------------------------------------
+
+checking quest by ID
+
+* syntax:
+		HasQuest(QuestID)
+
+* returns:
+		true/false
+
+--]]----------------------------------------------------------------------------------------------
+
 function ME.HasQuest(id)
 	for i=1,30 do
 		if select(9, GetQuestInfo(i)) == id then
@@ -86,6 +120,18 @@ function ME.HasQuest(id)
 	end
 	return false
 end
+
+--[[----------------------------------------------------------------------------------------------
+
+running kitty-combo after looting and target changes to next enemy
+
+* syntax:
+		RB_Kitty(yourKittyToken(s))
+
+* returns:
+		nothing
+
+--]]----------------------------------------------------------------------------------------------
 
 function ME.RB_Kitty(kittyToken)
 	if kittyToken=="auto" then
@@ -97,10 +143,55 @@ function ME.RB_Kitty(kittyToken)
 	elseif not UnitName(t) then
 		TargetNearestEnemy()
 	end
-	if UnitName(t) then
+	if UnitName(t) and UnitCanAttack("player", "target") then
 		Kitty.attack(kittyToken or nil)
 	end
 end
+
+--[[----------------------------------------------------------------------------------------------
+
+check if you or your target is casting
+
+* syntax:
+		UnitIsCasting([pattern], [target])
+
+* returns:
+		true/false
+
+* examples:
+		if UnitIsCasting() then ...											- checks if player is casting anything
+		if UnitIsCasting(nil, "target") then ...				- checks if target is casting anything
+		if UnitIsCasting("castName", "target") then ...	- checks if your target is casting a cast containing "castName"
+
+
+--]]----------------------------------------------------------------------------------------------
+
+function ME.UnitIsCasting(pattern, target)
+	local trgt = target or "player"
+	local cast, tTime, cTime = UnitCastingTime(target)
+	if cast and cast~="" and cTime<tTime then
+		if pattern and pattern~="" then
+			if cast==pattern or string.find(cast, pattern) then
+				return true
+			end
+		else
+			return true
+		end
+	end
+	return false
+end
+
+--[[----------------------------------------------------------------------------------------------
+
+replacement for TargetNearestEnemy - first targets enemy that are attacking you
+
+* syntax:
+		TargetNearestEnemy(reverseOrder)
+
+* returns:
+		nothing
+
+--]]----------------------------------------------------------------------------------------------
 
 function ME.TargetNearestEnemy(reverse)
 	local orig,first = RB.GetOriginalFunction(_G, "TargetNearestEnemy"), 0
@@ -119,18 +210,17 @@ function ME.TargetNearestEnemy(reverse)
 	end
 end
 
-function ME.UnitIsCasting(pattern, target)
-	local trgt = target or "player"
-	local cast, tTime, cTime = UnitCastingTime(target)
-	if cast and cast~="" and cTime<tTime then
-		if castPattern then
-			if cast==castPattern or string.find(cast, castPattern) then
-				return true
-			end
-		end
-	end
-	return false
-end
+--[[----------------------------------------------------------------------------------------------
+
+target a unit by its name if in range and targetable
+
+* syntax:
+		TargetUnitByName(pattern, [friendly])
+
+* returns:
+		true/false
+
+--]]----------------------------------------------------------------------------------------------
 
 local function CheckName(pattern, target)
 	target = target or "target"
@@ -161,6 +251,18 @@ function ME.TargetUnitByName(pattern, friendly)
 	return false
 end
 
+--[[----------------------------------------------------------------------------------------------
+
+target a unit by its name if in range and targetable and puts it to the next free focus-slot
+
+* syntax:
+		FocusUnitByName(pattern, [friendly])
+
+* returns:
+		focus-id or false
+
+--]]----------------------------------------------------------------------------------------------
+
 function ME.FocusUnitByName(pattern, friendly)
 	local i
 	for i=1,12 do
@@ -179,17 +281,103 @@ function ME.FocusUnitByName(pattern, friendly)
 	end
 end
 
+--[[----------------------------------------------------------------------------------------------
+
+shows cooldown on actionbar buttons with macro
+
+* syntax:
+		MacroCD(name, time)
+
+* returns:
+		nothing
+
+--]]----------------------------------------------------------------------------------------------
+
+local function UpdateMacroCD(elapsedTime)
+	ME.macroSlots				= ME.macroSlots or {}
+	local numRunning		= 0
+	for k,v in pairs(ME.macroSlots) do
+		ME.macroSlots[k].remaining = math.max(0, ME.macroSlots[k].remaining - elapsedTime)
+		numRunning = numRunning + (ME.macroSlots[k].remaining>0 and 1 or 0)
+	end
+
+	for i,ab in pairs({"Main", "Bottom", "Right", "Left"}) do
+		for j = 1, ACTIONBAR_NUM_BUTTONS do
+			local id = (i-1)*ACTIONBAR_NUM_BUTTONS+j
+			local icon, name, count = GetActionInfo(id)
+			if icon~=nil and name~=nil and ME.macroSlots[name]~=nil then
+				local buttFrame = getglobal(("%sActionBarFrameButton%d"):format(b,j))
+				local timeFrame = getglobal(("%sActionBarFrameButton%dCooldown"):format(b,j))
+				CooldownFrame_SetTime(timeFrame, ME.macroSlots[name].duration, ME.macroSlots[name].remaining)
+				if ME.macroSlots[name].remaining<=0 then
+					ME.macroSlots[name] = nil
+				end
+			end
+		end
+	end
+	if numRunning<=0 then
+		RB.UnregisterEvent(ME.name, "ONUPDATE")
+	end
+end
+
+function ME.MacroCD(name, time, invalid)
+	assert(type(name)=="string", "error: this macro needs a name for MacroCD")
+	ME.macroSlots				= ME.macroSlots or {}
+	ME.macroSlots[name] = ME.macroSlots[name] or {}
+	ME.macroSlots[name].duration	= time
+	ME.macroSlots[name].remaining	= time
+	ME.macroSlots[name].invalid		= invalid or false
+	RB.RegisterEvent(ME.name, "ONUPDATE", UpdateMacroCD)
+	RB.Debug(ME.name, "MacroCD", name, time)
+end
+
+--[[----------------------------------------------------------------------------------------------
+
+shows your current position in chat - for dev use
+
+* syntax:
+		GetPosition()
+
+* returns:
+		nothing
+
+--]]----------------------------------------------------------------------------------------------
+
 function ME.GetPosition()
 	local m		= GetCurrentWorldMapID()
 	local z,n = GetZoneID(), GetZoneName()
 	local x,y = GetPlayerWorldMapPos(m)
-	DEFAULT_CHAT_FRAME:AddMessage(sprintf("zone: %s (%d) xPos: %.10f yPos: %.10f", n, z, x, y))
+	DEFAULT_CHAT_FRAME:AddMessage(sprintf("zone: %s (%d) xPos: %.10f yPos: %.10f", n or "unknown", z or 0, x or 0, y or 0))
 end
+
+--[[----------------------------------------------------------------------------------------------
+
+shows id of a npc - for dev use
+
+* syntax:
+		GetNpcID([target])
+
+* returns:
+		nothing
+
+--]]----------------------------------------------------------------------------------------------
 
 function ME.GetNpcID(target)
 	target = target or "target"
-	DEFAULT_CHAT_FRAME:AddMessage(sprintf("npcID of %s: %d", target, UnitGUID(target)))
+	DEFAULT_CHAT_FRAME:AddMessage(sprintf("npcID of %s: %d", target, UnitGUID(target) or 0))
 end
+
+--[[----------------------------------------------------------------------------------------------
+
+loot macro for sturmhöhe - targets next chest and click it to loot
+
+* syntax:
+		SH_loot()
+
+* returns:
+		nothing
+
+--]]----------------------------------------------------------------------------------------------
 
 function ME.SH_loot()
 	local i, n = 0, "Geheimnisvolle"
@@ -214,30 +402,72 @@ function ME.SH_loot()
 	end
 end
 
+--[[----------------------------------------------------------------------------------------------
+
+unbox macro for sturmhöhe - unpacks next chest (I to XX) if at least 3 slots available in bag
+
+* syntax:
+		SH_unbox()
+
+* returns:
+		true/false
+
+* usage:
+	/run SH_unbox()
+	/wait .1
+	/run SH_unbox()
+	/wait .1
+	/run SH_unbox()
+	/wait .1
+	/run SH_unbox()
+	...
+
+--]]----------------------------------------------------------------------------------------------
+
 function ME.SH_unbox()
 	ITEM_QUEUE_FRAME_UPSATETIME = 0
 	ITEM_QUEUE_FRAME_INSERTITEM = 0
-	_G.NEXT_CHEST = _G.NEXT_CHEST or 203256
-	function run()
-		local _,s,_ = GetBagCount()
-		local b			= GetBagItemCount(_G.NEXT_CHEST)
-		if s>3 and b>0 then
-			UseItemByName(TEXT("Sys".._G.NEXT_CHEST.."_name"))
-			return true
-		else
-			return false
+	local _,s,_ = GetBagCount()
+	if s>3 then
+		for i=203256,208371 do
+			if i==203266 then i=208361 end
+			local b	= GetBagItemCount(i)
+			if b>0 then
+				UseItemByName(TEXT("Sys"..i.."_name"))
+				return true
+			end
 		end
+		RB.Print("nothing to unpack")
+	else
+		RB.Print("need more space")
 	end
-	while not run() do
-		_G.NEXT_CHEST = _G.NEXT_CHEST + 1
-		if _G.NEXT_CHEST==203266 then
-			_G.NEXT_CHEST = 208361
-		end
-		if _G.NEXT_CHEST==208371 then
-			_G.NEXT_CHEST = 203256
-			break
-		end
-	end
+	return false
 end
+
+-- function ME.SH_unbox()
+-- 	ITEM_QUEUE_FRAME_UPSATETIME = 0
+-- 	ITEM_QUEUE_FRAME_INSERTITEM = 0
+-- 	_G.NEXT_CHEST = _G.NEXT_CHEST or 203256
+-- 	function run()
+-- 		local _,s,_ = GetBagCount()
+-- 		local b			= GetBagItemCount(_G.NEXT_CHEST)
+-- 		if s>3 and b>0 then
+-- 			UseItemByName(TEXT("Sys".._G.NEXT_CHEST.."_name"))
+-- 			return true
+-- 		else
+-- 			return false
+-- 		end
+-- 	end
+-- 	while not run() do
+-- 		_G.NEXT_CHEST = _G.NEXT_CHEST + 1
+-- 		if _G.NEXT_CHEST==203266 then
+-- 			_G.NEXT_CHEST = 208361
+-- 		end
+-- 		if _G.NEXT_CHEST==208371 then
+-- 			_G.NEXT_CHEST = 203256
+-- 			break
+-- 		end
+-- 	end
+-- end
 
 RB.RegisterModule("macro", ME)
