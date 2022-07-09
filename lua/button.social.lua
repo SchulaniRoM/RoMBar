@@ -42,12 +42,12 @@ function ME.Update(event, ...)
 	end
 	if IsInGuild() then
 		RB.UpdateButtonText(ME.name,
-			sprintf("%s: %s%s%s", RB.lang.GUILD, RB.Dec(gNum), RB.Separator(), RB.Dec(gMax)),
-			sprintf("%s: %s%s%s", RB.lang.FRIEND, RB.Dec(fNum), RB.Separator(), RB.Dec(fMax))
+			sprintf("%s: %s%s%s", RB.Lang(ME.name, "GUILD"), RB.Dec(gNum), RB.Separator(), RB.Dec(gMax)),
+			sprintf("%s: %s%s%s", RB.Lang(ME.name, "FRIEND"), RB.Dec(fNum), RB.Separator(), RB.Dec(fMax))
 		)
 	else
 		RB.UpdateButtonText(ME.name,
-			sprintf("%s: %s%s%s", RB.lang.FRIEND, RB.Dec(fNum), RB.Separator(), RB.Dec(fMax))
+			sprintf("%s: %s%s%s", RB.Lang(ME.name, "FRIEND"), RB.Dec(fNum), RB.Separator(), RB.Dec(fMax))
 		)
 	end
 end
@@ -66,7 +66,7 @@ function ME.Tooltip(tooltip)
 						RB.ColorByClass(mClass, sprintf("%s%d", mClass:sub(1,1), mLevel)), sLevel>0 and RB.Separator() or "",
 						sLevel>0 and RB.ColorByClass(sClass, sprintf("%s%d", sClass:sub(1,1), sLevel)) or ""
 					),
-					map or RB.lang.NOLOCA
+					map or RB.Lang(ME.name, "NOLOCATION")
 				)
 			end
 		end
@@ -82,7 +82,7 @@ function ME.Tooltip(tooltip)
 	end
 	if #list>0 then
 		tooltip:AddSeparator()
-		tooltip:AddLine(sprintf("%s: %s", RB.lang.FRIENDS, list))
+		tooltip:AddLine(sprintf("%s: %s", RB.Lang(ME.name, "FRIENDLIST"), list))
 	end
 end
 

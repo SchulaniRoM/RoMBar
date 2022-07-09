@@ -2,7 +2,7 @@
 RB = {
 	addonName							= "Extended RoMBar",
 	addonAuthor						= "Schulani & Celesteria@Kerub",
-	addonVersion					= 2.15,
+	addonVersion					= 2.16,
 	addonPath							= "Interface/AddOns/RoMBar",
 	addonSettings					= "RoMBarSettings",
 	addonProfile					= "RoMBarProfile",
@@ -15,7 +15,6 @@ RB = {
 	settings							= {},
 	defaults							= {},
 	events								= {},
-	lang									= {},
 }
 _G.RoMBar								= RB
 
@@ -77,7 +76,7 @@ local function VarFunc(tbl, var, default, ...)
 	local varV, varF = tostring(var):lower(), tostring(var):sub(1,1):upper() .. tostring(var):sub(2):lower()
 	if tbl[varF] and type(tbl[varF])=="function" then return tbl[varF](...) end
 	if tbl[varV] then return tbl[varV] end
-	return default and default or nil
+	return default
 end
 
 function Arglist(withKey, ...)
@@ -202,14 +201,7 @@ function RB.UnregisterEvent(name, event)
 end
 
 function RB.VARIABLES_LOADED()
-	local lang,buttons,modules = GetLanguage():upper():sub(1,2)
-	local _,err = loadfile(sprintf("%s/lang/%s.lua", RB.addonPath, lang))
-	if err then
-		RB.Error("RoMBar can't find translation for your client language, default (DE) loaded.")
-		RB.lang	= dofile(sprintf("%s/lang/DE.lua", RB.addonPath))
-	else
-		RB.lang	= dofile(sprintf("%s/lang/%s.lua", RB.addonPath, lang))
-	end
+	local buttons,modules
 	RB.buttonHolder, RB.buttonIndex, RB.modules = {}, {}, {}
 	RB.defaults, buttons, modules = dofile(sprintf("%s/defaults.lua", RB.addonPath))
 	for i=1,#modules do
@@ -235,11 +227,12 @@ function RB.VARIABLES_LOADED()
 	ITEM_QUEUE_FRAME_UPSATETIME = 0
 	ITEM_QUEUE_FRAME_INSERTITEM = 0
 
-	RB.Print(sprintf("|cff34CB93RoMBar %s|r %s", RB.addonVersion, RB.lang["WELCOME"]))
+	RB.LoadModules()
+	RB.Print(sprintf("|cff34CB93RoMBar %s|r %s", RB.addonVersion, RB.Lang("WELCOME")))
 
 	RB.UpdateUI()
-	RB.LoadModules()
 	RB.LoadButtons()
+
 end
 
 function RB.SAVE_VARIABLES()
@@ -260,15 +253,15 @@ end
 
 function RB.UpdateButtons()
 	local l, r, index = nil, nil
-	RB.Debug("updating buttons")
+	RB.Debug("updating all buttons")
 	for index in pairs(RB.buttonHolder) do
 		local button, name, index	= RB.GetButton(index)
 		if button.loaded then
 			if not button.initialized then
+				RB.Debug(" -> init button", name, index, button.frame)
 				button.initialized = (VarFunc(button, "init", true)~=false)
 				if button.Update then button.Update() end
 				RB.RegisterEvent(name, button.events)
-				RB.Debug(" -> init button", name, index, button.frame)
 			end
 			if VarFunc(button, "enabled", true) then
 				RB.UpdateButtonIcon(name)
@@ -283,7 +276,6 @@ function RB.UpdateButtons()
 					button.frame:SetAnchor('LEFT', l and "RIGHT" or "LEFT", l or "RoMBarMain", 2, 0)
 					l = button.frame:GetName()
 				end
--- 				RB.Debug(name, index, button.frame:GetWidth(), button.frame:GetName(), l, r)
 			else
 				button.frame:Hide()
 			end
@@ -401,7 +393,7 @@ function RB.SetupTooltipPosition(lock)
 	end
 	frame:ClearAllAnchors();
 	frame:SetAnchor("TOPLEFT", "TOPLEFT", "UIParent", posX, posY );
-	getglobal(frame:GetName()..'Text'):SetText(RB.lang['TOOLTIP_INFO'])
+	getglobal(frame:GetName()..'Text'):SetText(RB.Lang("TOOLTIP_INFO"))
   getglobal(frame:GetName()..'Radio'..a[anchor]):SetChecked(true)
 
 	if lock==true or enabled==false then
@@ -543,13 +535,17 @@ function RB.RegisterButton(name, object)
 	object.index							= index
 	object.loaded							= true
 	object.initialized				= false
-	object.title							= object.title or RB.Lang(name, "TITLE")
 	object.actions						= object.actions or {}
-	object.actions.LBUTTON		= object.actions.LBUTTON or (RB.Lang(name, "LCLICK", nil, false) and {func = button.Click, disabled = false} or {disabled = true})
-	object.actions.MBUTTON		= object.actions.MBUTTON or (RB.Lang(name, "MCLICK", nil, false) and {func = button.Click, disabled = false} or {disabled = true})
-	object.actions.RBUTTON		= object.actions.RBUTTON or (RB.Lang(name, "RCLICK", nil, false) and {func = button.Click, disabled = false} or {disabled = true})
+
+	for c,b in pairs({LCLICK = "LBUTTON", RCLICK = "RBUTTON", MCLICK = "MBUTTON"}) do
+		object.actions[b]						= object.actions[b] or {}
+		object.actions[b].text			= object.actions[b].text or RB.Lang(name, c, nil, "")
+		object.actions[b].func			= object.actions[b].func or button.Click
+		object.actions[b].disabled	= object.actions[b].disabled or (object.actions[b].text=="")
+	end
+
 	RB.buttonHolder[index]		= object
-	return RB, object
+	return object
 end
 
 function RB.RegisterModule(name, object)
@@ -560,7 +556,7 @@ function RB.RegisterModule(name, object)
 	object.loaded							= true
 	object.initialized				= false
 	RB.modules[name]					= object
-	return RB, object
+	return object
 end
 
 function RB.ResizeButton(name)
@@ -631,7 +627,7 @@ function RB.ShowTooltip(event, frame)
 		tooltip:SetBackdrop(RB.Backdrop())
 		tooltip:SetScale(RB.settings.tooltipScale/100)
 		tooltip:SetAnchor(B..L, T..L, button.frame, X, Y)
-		tooltip:SetText(RB.ColorByName("yellow", button.title))
+		tooltip:SetText(RB.ColorByName("yellow", VarFunc(button, "title", RB.Lang(button.name, "TITLE"))))
 		tooltip:AddSeparator(1, 1, 1)
 		tooltip:Show()
 
@@ -755,8 +751,8 @@ function RB.RGB2HEX(arg1, arg2, arg3)
 end
 
 function RB.Dec(value)
-	local val = MoneyNormalization(math.abs(value))
-	return value<0 and RB.ColorByName("red", "-"..val) or val
+	local val = MoneyNormalization(math.abs(value or 0))
+	return value<0 and RB.ColorByName("red", "-"..val) or tostring(val)
 end
 
 function RB.ColorByClass(class, text)
@@ -784,7 +780,7 @@ function RB.ColorByClass(class, text)
 		end
 	end
 	color	= RB.settings.useWoWColors==true and RB.colors.classes.WOW[class] or RB.colors.classes.ROM[class]
-	return sprintf("|cff%s%s", color or "ffffff", text and tostring(text).."|r" or "")
+	return RB.ColorTag(color, text)
 end
 
 function RB.ColorByRarity(index, text)
@@ -796,8 +792,7 @@ function RB.ColorByRarity(index, text)
 		end
 	end
 	local color	= RB.colors.rarity[index<=10 and math.floor(index) or GetQualityByGUID(index)]
-	text	= text and (type(text)=="number" and RB.Dec(text) or tostring(text)) or nil
-	return sprintf("|cff%s%s%s", color or "ffffff", text and text or "", text and "|r" or "")
+	return RB.ColorTag(color, text)
 end
 
 function RB.ColorByQuality(value, text)
@@ -811,8 +806,8 @@ function RB.ColorByPercent(value, maxValue, reverse, text)
 	local r					= reverse==true and percent or (1 - percent)
 	local g					= reverse==true and (1 - percent) or percent
 	local color			= RB.RGB2HEX(r*512, g*512, 0)
-	text	= text and (type(text)=="number" and RB.Dec(text) or tostring(text)) or RB.Dec(value)
-	return sprintf("|cff%s%s%s", color or "ffffff", text and text or "", text and "|r" or "")
+-- 	text	= text and (type(text)=="number" and RB.Dec(text) or tostring(text)) or RB.Dec(value)
+	return RB.ColorTag(color, text or value)
 end
 
 function RB.ColorByName(cName, text)
@@ -824,7 +819,7 @@ function RB.ColorByName(cName, text)
 			GOLD					= {0.90,	0.90,	0.10},
 			DIAMOND				= {0.10,	0.90,	0.90},
 			RUBY					= {0.90,	0.10,	0.10},
-			ARKANE				= {0.90,	0.50,	0.10},
+			ARCANE				= {0.90,	0.50,	0.10},
 			RED						= {1.00,	0.00,	0.00},
 			DARK_RED			= {0.50,	0.00,	0.00},
 			LIGHT_RED			= {0.96,	0.60,	0.47}, -- raid chat
@@ -847,15 +842,19 @@ function RB.ColorByName(cName, text)
 		end
 	end
 	color	= RB.colors.names[cName:upper()]
-	text	= text and (type(text)=="number" and RB.Dec(text) or tostring(text)) or nil
-	return sprintf("|cff%s%s%s", color or "ffffff", text and text or "", text and "|r" or "")
+	return RB.ColorTag(color, text)
 end
 
 function RB.ColorPosNeg(value, reverse, text)
 	local pn 		= {[-1] = "BE3B3B", [0] = "3BBE3B", [1] = "3BBE3B"}
 	local val		= value~=0 and math.floor(reverse and (value / -value) or (value / value)) or 0
-	local text	= (text==nil or type(text)=="number") and RB.Dec(text or value) or tostring(text)
-	return sprintf("|cff%s%s%s", color or "ffffff", text and text or "", text and "|r" or "")
+-- 	local text	= (text==nil or type(text)=="number") and RB.Dec(text or value) or tostring(text)
+	return RB.ColorTag(color, text or value)
+end
+
+function RB.ColorTag(color, value)
+	local text	= value==nil and "" or (type(value)=="number" and RB.Dec(value) or tostring(value))
+	return sprintf("|cff%s%s%s", color or "ffffff", text, #text>0 and "|r" or "")
 end
 
 function RB.GetBankItemCount(item, IsOnly)
@@ -883,22 +882,11 @@ function RB.GetSkillBookIndexes(skillName)
 end
 
 function RB.Lang(name, token, replace, default)
-	local name 	= tostring(name or ""):upper()
-	local token	= tostring(token or ""):upper()
-	local text	= sprintf("%s:%s.%s", RB.lang._lang, name, token)
-	if RB.lang[name] and type(RB.lang[name])=="table" and RB.lang[name][token] then
-		text	= RB.lang[name][token]
-	elseif RB.lang[name.."_"..token] and type(RB.lang[name.."_"..token])=="string" then
-		text	= RB.lang[name.."_"..token]
-	elseif token=="" and RB.lang[name] and type(RB.lang[name])=="string" then
-		text	= RB.lang[name]
-	elseif default~=nil then
-		return default
+	if RB.modules and RB.modules.locale then
+		return RB.modules.locale.Lang(name, token, replace, default)
+	else
+		return "<nolang>"
 	end
-	if replace and type(replace)=="table" and text:find("<<") then
-		text	= RB.Format(text, replace)
-	end
-	return text
 end
 
 function RB.Separator()

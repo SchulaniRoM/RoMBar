@@ -25,7 +25,7 @@ function ME.Update(this)
 end
 
 function ME.Tooltip(tooltip)
-	local skillLevel = {[20] = RB.lang.CRAFT_LEVEL1, [40] = RB.lang.CRAFT_LEVEL2, [60] = RB.lang.CRAFT_LEVEL3, [80] = RB.lang.CRAFT_LEVEL4, [100] = RB.lang.CRAFT_LEVEL5}
+	local skillLevel = {[20] = RB.Lang(ME.name, "LEVEL1"), [40] = RB.Lang(ME.name, "LEVEL2"), [60] = RB.Lang(ME.name, "LEVEL3"), [80] = RB.Lang(ME.name, "LEVEL4"), [100] = RB.Lang(ME.name, "LEVEL5")}
 	local found = 0
 	for c,craftGroup in pairs({Crafting_Group_Gather, Crafting_Group_Craft, Crafting_Group_Other}) do
 		for i=1,#craftGroup.Items do
@@ -43,7 +43,7 @@ function ME.Tooltip(tooltip)
 		end
 	end
 	if found==0 then
-		tooltip:AddLine(RB.lang.CRAFT_NOCRAFT)
+		tooltip:AddLine(RB.Lang(ME.name, "NOCRAFT"))
 	end
 end
 

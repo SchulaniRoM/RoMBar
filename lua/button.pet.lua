@@ -26,23 +26,27 @@ local function GetPetCount()
 end
 
 function ME.Update(event, ...)
+	local oldIcon = ME.icon
 	if GetPetCount()==0 then
+		ME.icon											= "Interface/Icons/Icon-Default"
+		ME.actions.LBUTTON.text			= RB.Lang(ME.name, "NOPET")
 		ME.actions.RBUTTON.disabled = true
 		ME.actions.MBUTTON.disabled = true
-	else
+	elseif GetActivePetSlot() then
+		ME.icon											= "Interface/Icons/shop_goods/pet_egg_09"
+		ME.actions.LBUTTON.text			= RB.Lang(ME.name, "RECALL")
 		ME.actions.RBUTTON.disabled = false
-		if GetActivePetSlot() then
-			ME.icon	= "Interface/Icons/shop_goods/pet_egg_09"
-			ME.actions.MBUTTON.disabled = true
-			ME.actions.LBUTTON.text			= RB.lang.PET_RECALL
-		else
-			ME.icon	= "Interface/Icons/pet_goods/pet_goods_003"
-			ME.actions.MBUTTON.disabled = false
-			ME.actions.LBUTTON.text			= RB.lang.PET_SUMMON
-		end
+		ME.actions.MBUTTON.disabled = true
+	else
+		ME.icon											= "Interface/Icons/pet_goods/pet_goods_003"
+		ME.actions.LBUTTON.text			= RB.Lang(ME.name, "SUMMON")
+		ME.actions.RBUTTON.disabled = false
+		ME.actions.MBUTTON.disabled = false
 	end
-	RB.UpdateButtonIcon(ME.name)
--- 	RB.UpdateButtonText(nil, nil, GetActivePetSlot())
+	if oldIcon~=ME.icon then
+		RB.UpdateButtonIcon(ME.name)
+-- 		RB.UpdateButtonText(nil, nil, GetActivePetSlot())
+	end
 end
 
 function ME.Tooltip(tooltip)
@@ -51,17 +55,20 @@ function ME.Tooltip(tooltip)
 			if HasPetItem(i) then
 				local name	= GetPetItemName(i)
 				local level	= GetPetItemLevel(i)
-				local prop	= RB.lang["PET_PROP"..GetPetItemProperty(i)]
+				local prop	= RB.Lang(ME.name, "PROP"..GetPetItemProperty(i))
 				local h			= GetPetItemAbility(i, "HUNGER")
 				local l			= GetPetItemAbility(i, "LOYAL")
 				tooltip:AddDoubleLine(
 					sprintf("%d: %s %d (%s)", i, name, level, prop),
-					sprintf("%s: %s%s%s: %s", RB.lang.PET_HUNGER_SHORT, RB.ColorByPercent(h, 100), RB.Separator(), RB.lang.PET_LOYAL_SHORT, RB.ColorByPercent(l, 100))
+					{
+				   RB.Lang(ME.name, "HUNGER_SHORT", {RB.ColorByPercent(h, 100)}),
+				   RB.Lang(ME.name, "LOYAL_SHORT", {RB.ColorByPercent(l, 100)})
+				  }
 				)
 			end
 		end
 	else
-		tooltip:AddLine(RB.lang.PET_NOPET)
+		tooltip:AddLine(RB.Lang(ME.name, "NOPET"))
 	end
 end
 
@@ -95,11 +102,11 @@ local function CallPet(petSlot)
 	local name = GetPetItemName(petSlot)
 	if name then
 		if IsPetSummoned(petSlot) then
-			RB.Print(RB.Format(RB.lang.PET_CHATMSG_RECALL, {name = name}, 0, 1, 0))
+			RB.Print(RB.Lang(ME.name, "CHATMSG_RECALL", {name}))
 			ReturnPet(petSlot)
 			ME.Update()
 		else
-			RB.Print(RB.Format(RB.lang.PET_CHATMSG_SUMMON, {name = name}, 0, 1, 0))
+			RB.Print(RB.Lang(ME.name, "CHATMSG_SUMMON", {name}))
 			SummonPet(petSlot)
 			ME.Update()
 		end
@@ -108,10 +115,14 @@ end
 
 function ME.Click(key, tooltip)
 	if key=="LBUTTON" then
-		CallPet(RB.settings.lastPetSlot)
+		if GetPetCount()>0 then
+			tooltip:Hide()
+			CallPet(RB.settings.lastPetSlot)
+		end
 	elseif key=="RBUTTON" then
 		ToggleUIFrame(PetFrame)
 	elseif key=="MBUTTON" then
+		tooltip:Hide()
 		RB.RegisterEvent(ME.name, "COROUTINE", coroutine.create(FeedPet))
 	end
 end

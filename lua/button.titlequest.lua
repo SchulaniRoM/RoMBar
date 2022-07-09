@@ -32,7 +32,7 @@ function ME.Init()
 end
 
 function ME.GetTitle(id)
-	local title, icon, text = RB.lang.NOTITLE, "interface/icons/quest_paperstack03", ""
+	local title, icon, text = RB.Lang(ME.name, "NOTITLE"), "interface/icons/quest_paperstack03", ""
 	if ME.titles[id] then
 		local name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id])
 		if geted then
@@ -61,7 +61,7 @@ function ME.Update(event, ...)
 	end
 
 	RB.UpdateButtonText(ME.name,
-		{sprintf("%s: %s", RB.lang.DQUEST, RB.ColorByPercent(dVal, dMax, true, dVal)), dMax},
+		{sprintf("%s: %s", RB.Lang(ME.name, "DAILY_SHORT"), RB.ColorByPercent(dVal, dMax, true, dVal)), dMax},
 		title
 	)
 end
@@ -80,7 +80,7 @@ function ME.ELITE_BOSS_BELL(event, msg, ...)
 		}
 		object.name = object.name:match("^[%s%c]*(.-)[%s%c]*$")
 		if object.name and object.name~="" then
-			SendChatMessage(RB.Format(RB.lang.BOSS_BELL, object), "guild")
+			SendChatMessage(RB.Format(RB.Lang(ME.name, "BOSS_BELL"), object), "guild")
 		end
 	end
 end
@@ -93,7 +93,7 @@ function ME.Tooltip(tooltip)
 		tNum = tNum + (geted and 1 or 0)
 	end
 	tooltip:AddDoubleLine(
-		RB.lang.TITLE,
+		RB.Lang(ME.name, "TITLES"),
 		sprintf("%s%s%s", RB.ColorByPercent(tNum, tTotal), RB.Separator(), RB.Dec(tTotal))
 	)
 	-- cards
@@ -109,7 +109,7 @@ function ME.Tooltip(tooltip)
 		end
 	end
 	tooltip:AddDoubleLine(
-		RB.lang.CARDS,
+		RB.Lang(ME.name, "CARDS"),
 		sprintf("%s%s%s", RB.ColorByPercent(cNum, cTotal), RB.Separator(), RB.Dec(cTotal))
 	)
 end
@@ -131,8 +131,8 @@ end
 function ME.DropDownHandler()
 	local DD = RB.modules.dropdown
 	if (UIDROPDOWNMENU_MENU_LEVEL or 1)==1 then
-		DD.AddTitle(RB.lang[ME.name:upper().."_TITLE"])
-		DD.AddCheckBox(RB.lang.NOTITLE, not GetCurrentTitle(), 0, ChangeTitle)
+		DD.AddTitle(RB.Lang(ME.name, "TITLE"))
+		DD.AddCheckBox(RB.Lang(ME.name, "NOTITLE"), not GetCurrentTitle(), 0, ChangeTitle)
 		RB.settings.titleList	= RB.settings.titleList or {}
 		for id,_ in pairs(RB.settings.titleList) do
 			DD.AddCheckBox(ME.GetTitle(id), GetCurrentTitle()==id, id, ChangeTitle)

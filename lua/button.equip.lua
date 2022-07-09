@@ -60,13 +60,13 @@ function ME.Update(event, ...)
 	end
 	if aName then
 		RB.UpdateButtonText(ME.name,
-			sprintf("%s: %s", RB.lang.DURA, RB.ColorByPercent(dura, 1, false, sprintf("%s%%", RB.Dec(math.floor(100*dura))))),
-			sprintf("%s: %s%s%s", RB.lang.AMMO, RB.ColorByPercent(aInv, 999, false, aInv), RB.Separator(), RB.Dec(aBag)),
+			RB.Lang(ME.name, "DURA_SHORT", {RB.ColorByPercent(dura, 1, false, tostring(math.floor(100*dura)).."%")}),
+			RB.Lang(ME.name, "AMMO_SHORT", {RB.ColorByPercent(aInv, 999, false)}),
 			RB.ColorByName("white", GetEuipmentNumber())
 		)
 	else
 		RB.UpdateButtonText(ME.name,
-			sprintf("%s: %s", RB.lang.DURA, RB.ColorByPercent(dura, 1, false, sprintf("%s%%", RB.Dec(math.floor(100*dura))))),
+			RB.Lang(ME.name, "DURA_SHORT", {RB.ColorByPercent(dura, 1, false, math.floor(100*dura))}),
 			nil,
 			RB.ColorByName("white", GetEuipmentNumber())
 		)
@@ -87,7 +87,7 @@ function ME.Tooltip(tooltip)
 		if iName then
 			if i==9 then
 				tooltip:AddSeparator()
-				tooltip:AddDoubleLine(sprintf("%s%s%s", RB.lang.EQUIP_SLOT9, RB.Separator(), iName), sprintf("x%d", GetInventoryItemCount("player", 9)))
+				tooltip:AddDoubleLine(sprintf("%s%s%s", RB.Lang(ME.name, "SLOT9"), RB.Separator(), iName), sprintf("x%d", GetInventoryItemCount("player", 9)))
 			else
 				if i==18 then tooltip:AddSeparator() end
 				iName		= RB.ColorByRarity(quali, iName)
@@ -96,14 +96,14 @@ function ME.Tooltip(tooltip)
 				if i>=18 and i<=20 then
 					tooltip:AddDoubleLine(iName, sprintf("%s%s%s", dVal, RB.Separator(), dMax))
 				else
-					tooltip:AddDoubleLine(sprintf("%s%s%s", RB.lang["EQUIP_SLOT"..i], RB.Separator(), iName), sprintf("%s%s%s", dVal, RB.Separator(), dMax))
+					tooltip:AddDoubleLine(sprintf("%s%s%s", RB.Lang(ME.name, "SLOT"..i), RB.Separator(), iName), sprintf("%s%s%s", dVal, RB.Separator(), dMax))
 				end
 			end
 		end
 	end
 	if GetEquipmentRepairAllMoney()>0 then
 		tooltip:AddSeparator()
-		tooltip:AddDoubleLine(RB.lang.REPAIR_COSTS..":", "|cffFFFF00"..RB.Dec(GetEquipmentRepairAllMoney()).."|r")
+		tooltip:AddDoubleLine(RB.Lang(ME.name, "REPAIRCOSTS"), "|cffFFFF00"..RB.Dec(GetEquipmentRepairAllMoney()).."|r")
 	end
 end
 
@@ -120,19 +120,19 @@ local function RepairItem()
 			if GetBagItemCount(hID)>0 then
 				UseItemByName(TEXT("Sys"..hID.."_name"))
 				PickupEquipmentItem(i)
-				RB.Print(sprintf(RB.lang.EQUIP_REPAIRING, RB.ColorByRarity(quali, iName)))
+				RB.Print(RB.Lang(ME.name, "REPAIRING", {RB.ColorByRarity(quali, iName)}))
 				rDone	= rDone + 1
 				coroutine.yield()
 			else
-				RB.Print(RB.lang.EQUIP_NOHAMMER)
+				RB.Print(RB.Lang(ME.name, "NOHAMMER"))
 				break
 			end
 		end
 	end
 	if rDone>0 then
-		RB.Print(sprintf(RB.lang.EQUIP_REPDONE, rDone))
+		RB.Print(RB.Lang(ME.name, "REPDONE", {rDone}))
 	else
-		RB.Print(sprintf(RB.lang.EQUIP_NOREPAIR))
+		RB.Print(RB.Lang(ME.name, "NOREPAIR"))
 	end
 	RepairItem_running = nil
 end
@@ -144,7 +144,7 @@ function ME.Click(key, tooltip)
 		SwapEquipmentItem(GetEuipmentNumber() % 2)
 	elseif key=="MBUTTON" then
 		StaticPopupDialogs["ROMBAR_REPAIR_ITEMS"] = {
-			text 					= RB.lang.EQUIP_REPAIRDIALOG,
+			text 					= RB.Lang(ME.name, "REPAIRDIALOG"),
 			button1 			= RB.ColorByRarity(201967, TEXT("Sys201967_name")),
 			button2 			= RB.ColorByRarity(201014, TEXT("Sys201014_name")),
 			whileDead 		= 0,

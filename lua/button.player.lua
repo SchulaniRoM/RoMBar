@@ -25,7 +25,7 @@ function ME.Update(event, ...)
 	local dXP, dTP 	= GetPlayerExpDebt()
 	local percent		= 100/mXP*cXP
 	RB.UpdateButtonText(ME.name,
-		{RB.ColorByClass(mToken, mClass.." "..mLevel), RB.ColorByClass(sToken, sClass.." "..sLevel)},
+		{RB.ColorByClass(mToken, mClass.." "..mLevel), sLevel>0 and RB.ColorByClass(sToken, sClass.." "..sLevel) or nil},
 		{dXP<0 and RB.ColorPosNeg(dXP) or nil, RB.ColorByPercent(cXP, mXP), RB.Dec(mXP), RB.ColorByPercent(cXP, mXP, false, sprintf("%d%%", percent))}
 	)
 	local oldIcon		= ME.icon
@@ -68,14 +68,14 @@ function ME.Tooltip(tooltip)
 			sprintf("%s%s%s", RB.ColorByPercent(cXP, mXP), RB.Separator(), RB.Dec(mXP))
 		)
 	end
-	tooltip:AddDoubleLine(RB.lang.TPLONG,  	sprintf("%s%s%s", RB.Dec(mTPc), RB.Separator(), RB.Dec(mTPm)))
+	tooltip:AddDoubleLine(RB.Lang(ME.name, "TP"), sprintf("%s%s%s", RB.Dec(mTPc), RB.Separator(), RB.Dec(mTPm)))
 	tooltip:AddSeparator()
 
 	-- dept / boni
 	local mXPd, mTPd, sXPd, sTPd	= GetPlayerExpDebt()
 	local mXPb, mTPb							= GetPlayerExtraPoint()
-	tooltip:AddDoubleLine(RB.lang.DEPT, 		sprintf("%s: %s%s%s: %s", RB.lang.XP, RB.Dec(mXPd), RB.Separator(), RB.lang.TP, RB.Dec(mTPd)))
-	tooltip:AddDoubleLine(RB.lang.BONUS,		sprintf("%s: %s%s%s: %s", RB.lang.XP, RB.Dec(mXPb), RB.Separator(), RB.lang.TP, RB.Dec(mTPb)))
+	tooltip:AddDoubleLine(RB.Lang(ME.name, "DEPT"), 		sprintf("%s: %s%s%s: %s", RB.Lang(ME.name, "XP_SHORT"), RB.Dec(mXPd), RB.Separator(), RB.Lang(ME.name, "TP_SHORT"), RB.Dec(mTPd)))
+	tooltip:AddDoubleLine(RB.Lang(ME.name, "BONUS"),		sprintf("%s: %s%s%s: %s", RB.Lang(ME.name, "XP_SHORT"), RB.Dec(mXPb), RB.Separator(), RB.Lang(ME.name, "TP_SHORT"), RB.Dec(mTPb)))
 end
 
 RB.RegisterButton("player", ME)

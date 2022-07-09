@@ -27,11 +27,11 @@ function ME.Update(event, ...)
 	local ping	= math.floor(GetPing() or 0)
 	local mem		= math.floor((collectgarbage("count") or 0)/1024)
 	RB.UpdateButtonText(ME.name,
-		os and {os.date(RB.lang.DATE_STRING), os.date(RB.lang.TIME_STRING)} or nil,
+		os and {os.date(RB.Lang(ME.name, "DATE_FORMAT")), os.date(RB.Lang(ME.name, "TIME_FORMAT"))} or nil,
  		{
-			sprintf("%s: %s", RB.lang.FPS, RB.ColorByPercent(fps, 60, false, fps)),
-			sprintf("%s: %s", RB.lang.PING, RB.ColorByPercent(ping, 120, true, ping)),
-			sprintf("%s: %sMB", RB.lang.MEMORY, RB.ColorByPercent(mem, 150, true, mem))
+			RB.Lang(ME.name, "FPS",			{RB.ColorByPercent(fps, 60, false)}),
+			RB.Lang(ME.name, "PING",		{RB.ColorByPercent(ping, 120, true)}),
+			RB.Lang(ME.name, "MEMORY",	{RB.ColorByPercent(mem, 150, true)})
 		}
 	)
 end
@@ -67,7 +67,7 @@ end
 function ME.DropDownHandler()
 	local DD = RB.modules.dropdown
 	if (UIDROPDOWNMENU_MENU_LEVEL or 1)==1 then
-		DD.AddTitle(RB.lang.TIMETRAVEL_TELEPORT)
+		DD.AddTitle(RB.Lang(ME.name, "TELEPORT"))
 		for _,cID in pairs(teleport.casts) do
 			local cast		= TEXT("Sys"..cID.."_name")
 			local page,id	= RB.GetSkillBookIndexes(cast)
@@ -81,7 +81,7 @@ function ME.DropDownHandler()
 					text 		= remaining>0 and sprintf("%s (%s)", cast, os.date("%Mm%Ss", remaining)) or cast
 				end
 				local func		= not isAvailable or remaining>0 and nil or function(this) CloseDropDownMenus() CastSpellByName(this.value) end
-				local tooltip = not isAvailable and RB.lang.TIMETRAVEL_NOTELEPORT or nil,
+				local tooltip = not isAvailable and RB.Lang(ME.name, "NOTELEPORT") or nil,
 				DD.AddButton(text, func, cast, tooltip)
 			end
 		end
@@ -91,7 +91,7 @@ function ME.DropDownHandler()
 				local cnt = GetBagItemCount(iID)
 				if cnt>0 then
 					local name	= TEXT("Sys"..iID.."_name")
-					DD.AddButton(sprintf("%s (%d)", RB.ColorByRarity(iID, name), cnt), function(this) UseItemByName(this.value) end, name)
+					DD.AddButton(sprintf("%s x%d", RB.ColorByRarity(iID, name), cnt), function(this) UseItemByName(this.value) end, name)
 					break
 				end
 			end

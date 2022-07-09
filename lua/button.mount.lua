@@ -56,24 +56,24 @@ local function UpdateIcon()
 	local mounted, buffID, icon 	= IsMounted()
 	if not IsMountableZone() then
 		ME.icon											= RB.addonPath.."/textures/SaddleGrey"
-		ME.actions.LBUTTON.text			= RB.lang.MOUNT_NORIDE
+		ME.actions.LBUTTON.text			= RB.Lang(ME.name, "NORIDE")
 		ME.actions.RBUTTON.disabled	= true
 	elseif mounted then
 		ME.icon											= icon:gsub("\\", "/")
 		RB.settings.lastMount				= ME.icon
-		ME.actions.LBUTTON.text			= RB.lang.MOUNT_DISMOUNT
+		ME.actions.LBUTTON.text			= RB.Lang(ME.name, "DISMOUNT")
 		ME.actions.RBUTTON.disabled = true
 	elseif ME.numMounts>0 then
 		ME.icon 										= RB.addonPath.."/textures/Saddle"
-		ME.actions.LBUTTON.text			= RB.lang.MOUNT_MOUNT
+		ME.actions.LBUTTON.text			= RB.Lang(ME.name, "MOUNT")
 		ME.actions.RBUTTON.disabled = false
 	elseif HasTicket() then
 		ME.icon 										= RB.addonPath.."/textures/HorseRentalTicket"
-		ME.actions.LBUTTON.text			= RB.lang.MOUNT_RENTAL
+		ME.actions.LBUTTON.text			= RB.Lang(ME.name, "RENTAL")
 		ME.actions.RBUTTON.disabled = true
 	else
 		ME.icon											= RB.addonPath.."/textures/SaddleGrey"
-		ME.actions.LBUTTON.text			= RB.lang.MOUNT_NOMOUNT
+		ME.actions.LBUTTON.text			= RB.Lang(ME.name, "NOMOUNT")
 		ME.actions.RBUTTON.disabled	= true
 	end
 	if oldIcon~=ME.icon then

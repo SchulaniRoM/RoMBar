@@ -36,7 +36,7 @@ function ME.Update(event, ...)
 	local phirius = RB.ColorByRarity(203038, GetPlayerMoney("billdin") + GetCountInBankByName(TEXT("Sys203038_name")))
 	local diamond	= RB.ColorByName("diamond", GetPlayerMoney("account"))
 	local ruby		= RB.ColorByName("ruby", GetPlayerMoney("bonus"))
-	local arkane	= RB.ColorByName("arkane", GetMagicBoxEnergy())
+	local arkane	= RB.ColorByName("arcane", GetMagicBoxEnergy())
 	RB.UpdateButtonText(ME.name,
 		RB.ColorByName("gold", RB.Dec(GetPlayerMoney("copper"))),
 		{diamond, GetPlayerMoney("bonus")>0 and ruby or nil, phirius, arkane}
@@ -44,10 +44,10 @@ function ME.Update(event, ...)
 end
 
 function ME.Tooltip(tooltip)
-	tooltip:AddDoubleLine(RB.lang.GOLD..":", 		RB.ColorByName("gold", GetPlayerMoney("copper")))
-	tooltip:AddDoubleLine(RB.lang.DIAMOND..":", RB.ColorByName("diamond", GetPlayerMoney("account")))
-	tooltip:AddDoubleLine(RB.lang.RUBY..":", 		RB.ColorByName("ruby", GetPlayerMoney("bonus")))
-	tooltip:AddDoubleLine(RB.lang.ARKANE..":",	RB.ColorByName("arkane", GetMagicBoxEnergy()))
+	tooltip:AddDoubleLine(RB.Lang(ME.name, "GOLD")..":", 		RB.ColorByName("gold", GetPlayerMoney("copper")))
+	tooltip:AddDoubleLine(RB.Lang(ME.name, "DIAMOND")..":", RB.ColorByName("diamond", GetPlayerMoney("account")))
+	tooltip:AddDoubleLine(RB.Lang(ME.name, "RUBY")..":", 		RB.ColorByName("ruby", GetPlayerMoney("bonus")))
+	tooltip:AddDoubleLine(RB.Lang(ME.name, "ARCANE")..":",	RB.ColorByName("arcane", GetMagicBoxEnergy()))
 	tooltip:AddSeparator()
 	for _,l in pairs(moneyItems) do
 		local id, group, index, mType = unpack(l)
@@ -59,7 +59,7 @@ function ME.Tooltip(tooltip)
 		if aVal + aBag + aBank > 0 then
 			name	= mType and RB.ColorByRarity(id, TEXT("SYS_MONEY_TYPE_"..mType)) or RB.ColorByRarity(id, TEXT("Sys"..id.."_name"))
 			if aBag>0 or aBank>0 then
-				text	= sprintf("%s + %s", RB.Dec(aBag), RB.Dec(aBank))
+				text	= sprintf("%s + %s", RB.Dec(aBank), RB.Dec(aBag))
 			end
 			if aVal>0 then
 				text	= sprintf("%s%s%s", text, #text>0 and " + " or "", limit>0 and RB.ColorByPercent(aVal, limit, true) or RB.Dec(aVal))
