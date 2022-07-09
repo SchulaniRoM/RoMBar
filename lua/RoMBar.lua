@@ -72,6 +72,11 @@ local function TableReverse(tbl)
 	return tmp
 end
 
+local function Trim(str)
+	str = str:match("^[%s%c]*(.-)[%s%c]*$")
+	return str
+end
+
 local function VarFunc(tbl, var, default, ...)
 	local varV, varF = tostring(var):lower(), tostring(var):sub(1,1):upper() .. tostring(var):sub(2):lower()
 	if tbl[varF] and type(tbl[varF])=="function" then return tbl[varF](...) end
@@ -452,9 +457,9 @@ function RB.GameTooltip_OnUpdate(this, elapsedTime)
 		local anchorPoint, relativePoint, relativeTo, xOffset, yOffset = this:GetAnchor()
 		local changePosition = false
 		if this:GetTop()<0										then yOffset = yOffset - this:GetTop() 							changePosition = true end
-		if this:GetBottom()>GetScreenHeight()	then yOffset = GetScreenHeight() - this:GetBottom() changePosition = true end
+-- 		if this:GetBottom()>GetScreenHeight()	then yOffset = GetScreenHeight() - this:GetBottom() changePosition = true end
 		if this:GetLeft()<0 									then xOffset = xOffset - this:GetLeft()							changePosition = true end
-		if this:GetRight()>GetScreenWidth()		then xOffset = GetScreenWidth() - this:GetRight()		changePosition = true end
+-- 		if this:GetRight()>GetScreenWidth()		then xOffset = GetScreenWidth() - this:GetRight()		changePosition = true end
 		if changePosition then
 			this:ClearAllAnchors()
 			this:SetAnchor(anchorPoint, relativePoint, relativeTo, xOffset, yOffset)
@@ -463,6 +468,19 @@ function RB.GameTooltip_OnUpdate(this, elapsedTime)
 		RB.tooltipTime = 0
 	end
 	RB.GetOriginalFunction(_G, "GameTooltip_OnUpdate")(this, elapsedTime)
+end
+
+function RB.CooldownFrame_SetTime(this, duration, remaining)
+	if ( duration > 0 or remaining > 0 ) then
+		getglobal(this:GetName().."Text"):SetText(RB.FormatCooldownTime(remaining))
+		getglobal(this:GetName().."Texture"):SetCooldown(duration, remaining)
+		this.starting = 1
+		this.duration = duration
+		this.remaining = remaining
+		this:Show()
+	else
+		this:Hide()
+	end
 end
 
 --[[---------------------------------------------------------------------------
@@ -712,33 +730,33 @@ function RB.Error(str, ...)
 	DEFAULT_CHAT_FRAME:AddMessage(str, .9, .3, .3)
 end
 
-function RB.Format(text, object, r, g, b)
+function RB.Format(text, object)
 	if text and type(text)=="string" and text~="" then
-		for k,v in ipairs(object) do
-			text = text:gsub("<<"..tostring(k)..">>", type(v)=="number" and RB.Dec(v) or tostring(v))
-		end
-		for k,v in pairs(object) do
+		for k,v in pairs(object or {}) do
 			text = text:gsub("<<"..tostring(k)..">>", type(v)=="number" and RB.Dec(v) or tostring(v))
 		end
 	end
-	text	= sprintf("|cff%s%s|r", RB.RGB2HEX(r, g, b), text)
 	return text
 end
 
--- function RB.TimeFormat(time)
--- 	if time==nil or time<=0 then
--- 		return ""
--- 	else
--- 		local day			= math.floor(time / 60 / 24)
--- 		local hour		= math.floor((time - (day * 60 * 24)) / 60)
--- 		local minute	= time - (day * 60 * 24) - (hour * 60)
--- 		if day>365 then
--- 			return ""
--- 		else
--- 			return sprintf(BANK_LETTIME_MSG, day, hour, minute)
--- 		end
--- 	end
--- end
+function RB.FormatCooldownTime(time)
+	local h = math.floor(time/60/60)
+	local m = math.floor(((time/60/60) - math.floor(time/60/60)) * 60)
+	local s = math.floor(((time/60) - math.floor(time/60)) * 60)
+	if h>1 then
+		return string.format("%dh%02d", h, m)
+	elseif m>10 then
+		return string.format("%dm", m)
+	elseif m>2 then
+		return string.format("%dm%02d", m, s)
+	elseif time>=2 then
+		return string.format("%d", m*60 + s)
+	elseif time>=0.1 then
+		return string.format("%0.1f", time)
+	else
+		return ""
+	end
+end
 
 function RB.RGB2HEX(arg1, arg2, arg3)
 	local r	= tonumber(type(arg1)=="table" and (arg1.r~=nil and arg1.r or arg1[1]) or arg1)
@@ -897,4 +915,5 @@ end
 	hooks
 --]]---------------------------------------------------------------------------
 
--- RB.Hook(_G, "GameTooltip_OnUpdate", RB.GameTooltip_OnUpdate)
+RB.Hook(_G, "GameTooltip_OnUpdate", RB.GameTooltip_OnUpdate)
+RB.Hook(_G, "CooldownFrame_SetTime", RB.CooldownFrame_SetTime)

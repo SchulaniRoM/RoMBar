@@ -37,7 +37,7 @@ local function SetValue(this)
 end
 
 function ME.Title()
-	return RB.Lang(ME.name, "TITLE", {version = RB.addonVersion}, "RoMBar Configuration")
+	return RB.Lang(ME.name, "TITLE", {RB.addonVersion}, "RoMBar Configuration")
 end
 
 function ME.DropDownHandler()

@@ -41,7 +41,7 @@ function ME.Click(key, tooltip)
 end
 
 function ME.Title()
-	return RB.Lang(ME.name, "TITLE", {version = _G.LI.version}, "LootIt!")
+	return RB.Lang(ME.name, "TITLE", {_G.LI.version}, "LootIt!")
 end
 
 function ME.Enabled()

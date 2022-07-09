@@ -58,19 +58,11 @@ function ME.Update(event, ...)
 			end
 		end
 	end
-	if aName then
-		RB.UpdateButtonText(ME.name,
-			RB.Lang(ME.name, "DURA_SHORT", {RB.ColorByPercent(dura, 1, false, tostring(math.floor(100*dura)).."%")}),
-			RB.Lang(ME.name, "AMMO_SHORT", {RB.ColorByPercent(aInv, 999, false)}),
-			RB.ColorByName("white", GetEuipmentNumber())
-		)
-	else
-		RB.UpdateButtonText(ME.name,
-			RB.Lang(ME.name, "DURA_SHORT", {RB.ColorByPercent(dura, 1, false, math.floor(100*dura))}),
-			nil,
-			RB.ColorByName("white", GetEuipmentNumber())
-		)
-	end
+	RB.UpdateButtonText(ME.name,
+		RB.Lang(ME.name, "DURA_SHORT", {RB.ColorByPercent(dura, 1, false, tostring(math.floor(100*dura)).."%")}),
+		aName and RB.Lang(ME.name, "AMMO_SHORT", {RB.ColorByPercent(aInv, 999, false)}) or nil,
+		RB.ColorByName("white", GetEuipmentNumber())
+	)
 end
 
 function ME.STORE_OPEN()
