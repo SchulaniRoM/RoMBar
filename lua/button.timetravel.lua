@@ -55,12 +55,26 @@ function ME.Tooltip(tooltip)
 	end
 end
 
+local function SetTime(event, arg1)
+	if arg1:find("_(%d+)_(%d+).bmp") then
+		local year, month, day, hour, minute, second = arg1:match("_(%d%d%d%d)(%d%d)(%d%d)_(%d%d)(%d%d)(%d%d).bmp")
+		OS_BASETIME = os.time({
+			year = tonumber(year), month = tonumber(month), day = tonumber(day),
+			hour = tonumber(hour), min = tonumber(minute), sec = tonumber(second)
+		})-GetTime()
+		RB.Debug("SetTime", year, month, day, hour, minute, second)
+		RB.UnregisterEvent(ME.name, "CHAT_MSG_SYSTEM")
+	end
+end
+
 function ME.Click(key, tooltip)
 	if key=="LBUTTON" then
 		ToggleUIFrame(TeleportBook)
 	elseif key=="RBUTTON" then
 		RB.modules.dropdown.ShowDropDown(tooltip, ME.DropDownHandler)
 	elseif key=="MBUTTON" then
+		RB.RegisterEvent(ME.name, "CHAT_MSG_SYSTEM", SetTime)
+		TakeScreenshot()
 	end
 end
 

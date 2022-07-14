@@ -5,8 +5,8 @@ local ME = {
 	icon			= {"Interface/gameicon/gameicon", 0.5, 0.625, 0.25, 0.375},
 	events		= {
 		"PLAYER_BAG_CHANGED", "BAG_ITEM_UPDATE", "BANK_CAPACITY_CHANGED",
-		"MAIL_SHOW",		"AUCTION_OPEN",		"BANK_OPEN",	"STORE_OPEN",
-		"MAIL_CLOSED",	"AUCTION_CLOSE",	"BANK_CLOSE",	"STORE_CLOSE"
+		"MAIL_SHOW",		"AUCTION_OPEN",		"BANK_OPEN",	"STORE_OPEN", "TRADE_SHOW",
+		"MAIL_CLOSED",	"AUCTION_CLOSE",	"BANK_CLOSE",	"STORE_CLOSE", "TRADE_CLOSED",
 	},
 	actions		= {
 		LBUTTON	= {text = RB.Lang("bag", "BAG"),	func = function() ToggleBackpack() end},
@@ -16,9 +16,9 @@ local ME = {
 }
 
 function ME.Update(event, ...)
-	if event=="MAIL_SHOW" or event=="AUCTION_OPEN" or event=="BANK_OPEN" or event=="STORE_OPEN" then
+	if event=="MAIL_SHOW" or event=="AUCTION_OPEN" or event=="BANK_OPEN" or event=="STORE_OPEN" or event=="TRADE_SHOW" then
 		return ShowUIPanel(BagFrame)
-	elseif event=="MAIL_CLOSED" or event=="AUCTION_CLOSE" or event=="BANK_CLOSE" or event=="STORE_CLOSE" then
+	elseif event=="MAIL_CLOSED" or event=="AUCTION_CLOSE" or event=="BANK_CLOSE" or event=="STORE_CLOSE" or event=="TRADE_CLOSED" then
 		return HideUIPanel(BagFrame)
 	end
 

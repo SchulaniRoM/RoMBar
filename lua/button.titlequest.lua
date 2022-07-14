@@ -3,35 +3,35 @@
 local RB = _G.RoMBar
 local ME = {
 	icon			= {"Interface/gameicon/gameicon", 0, 0.125, 0.125, 0.25},
-	events		= {"LOADING_END", "RESET_QUESTTRACK", "PLAYER_TITLE_ID_CHANGED", "ELITE_BOSS_BELL"},
+	events		= {"LOADING_END", "RESET_QUESTTRACK", "PLAYER_TITLE_ID_CHANGED", "PLAYER_TITLE_FLAG_CHANGED", "PLAYER_GET_TITLE", "ELITE_BOSS_BELL"},
 	actions		= {
  		MBUTTON	= {func = function() ToggleUIFrame(AchievementTitleFrame) end},
 		RBUTTON	= {func = function() ToggleUIFrame(UI_QuestBook) end},
 	},
-	titles		= {},
+	titles		= nil,
 }
 
-function ME.Init()
-	local tTotal		= GetTitleCount()
+function ReadTitles()
+	local tTotal, tmp		= GetTitleCount(), {}
 	if tTotal==0 then
 		AchievementTitleFrame:Show()
 		AchievementTitleFrame:Hide()
 		tTotal = GetTitleCount()
 	end
 	if tTotal>0 then
-		RB.Debug("titles", tTotal)
-		ME.titles	= {}
+		RB.Debug("ReadTitles", tTotal)
 		for i=0, tTotal do
 			_,tid	= GetTitleInfoByIndex(i)		-- name, titleID, geted, icon, classify1, classify2, note, brief, rare = GetTitleInfoByIndex( index )
 			if tid and tid>0 then
-				ME.titles[tid]	= i
+				tmp[tid]	= i
 			end
 		end
 	end
-	return true
+	return tmp
 end
 
 function ME.GetTitle(id)
+	if not ME.titles then ME.titles = ReadTitles() end
 	local title, icon, text = RB.Lang(ME.name, "NOTITLE"), "interface/icons/quest_paperstack03", ""
 	if ME.titles[id] then
 		local name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id])
@@ -39,6 +39,7 @@ function ME.GetTitle(id)
 			if name=="???" then
 				AchievementTitleFrame:Show()
 				AchievementTitleFrame:Hide()
+				ME.titles = ReadTitles()()
 				name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id])
 			end
 			title = name

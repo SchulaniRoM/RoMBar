@@ -4,9 +4,14 @@ local RB = _G.RoMBar
 local ME = {
 	icon			= {"Interface/gameicon/gameicon", 0, 0.125, 0.375, 0.5},
 	events		= {
-		"RESET_FRIEND", "UPDATE_GUILD_MEMBER", "LOADING_END",
+		"RESET_FRIEND", "UPDATE_GUILD_MEMBER", "PLAYER_LEVEL_UP", "LOADING_END",
 		"PARTY_INVITE_REQUEST", "RIDE_INVITE_REQUEST", "DUEL_REQUESTED",
+		"TRADE_REQUEST", "TRADE_ACCEPT_UPDATE",
 		"CHAT_MSG_GUILD", "CHAT_MSG_PARTY", "CHAT_MSG_WISPER",
+	},
+	actions		= {
+ 		LBUTTON	= {func = function() ToggleUIFrame(GuildFrame) end},
+		MBUTTON	= {func = function() ToggleSocialFrame("Friend") end},
 	},
 	importState	= 0,
 }
@@ -24,75 +29,108 @@ function ME.Update(event, ...)
 	end
 
 	if event=="RESET_FRIEND" then
-		if ME.importState~=IMPORTSTATE_DONE then return end
-		RB.global.friends[GetCurrentRealm()] = ME.GetFriendList()
+		if ME.importState==IMPORTSTATE_DONE then
+			RB.global.friends[GetCurrentRealm()] = ME.GetFriendList()
+		end
 	end
 
-	RB.Debug("Update", event, ...)
-
-	local gNum, gMax	= 0, IsInGuild() and GetNumGuildMembers() or 0
-	local fNum, fMax	= 0, GetFriendCount(DF_Socal_Token_Friend)
-	for i=1, gMax do
-		local _,_,_,_,_,_,_,_,_,_,online	= GetGuildRosterInfo(i)
-		gNum = gNum + (online and 1 or 0)
-	end
-	for i=1, fMax do
-		local _,_,online	= GetFriendInfo(DF_Socal_Token_Friend, i)
-		fNum = fNum + (online and 1 or 0)
-	end
-	if IsInGuild() then
+	if event=="RESET_FRIEND" or event=="UPDATE_GUILD_MEMBER" or event=="LOADING_END" then
+		ME.socialList	= ME.GetSocialList(true)
 		RB.UpdateButtonText(ME.name,
-			sprintf("%s: %s%s%s", RB.Lang(ME.name, "GUILD"), RB.Dec(gNum), RB.Separator(), RB.Dec(gMax)),
-			sprintf("%s: %s%s%s", RB.Lang(ME.name, "FRIEND"), RB.Dec(fNum), RB.Separator(), RB.Dec(fMax))
+			sprintf("%s: %s%s%s", RB.Lang(ME.name, "GUILD"), RB.Dec(ME.socialCount.gNum), RB.Separator(), RB.Dec(ME.socialCount.gMax)),
+			IsInGuild() and sprintf("%s: %s%s%s", RB.Lang(ME.name, "FRIEND"), RB.Dec(ME.socialCount.fNum), RB.Separator(), RB.Dec(ME.socialCount.fMax)) or nil
 		)
-	else
-		RB.UpdateButtonText(ME.name,
-			sprintf("%s: %s%s%s", RB.Lang(ME.name, "FRIEND"), RB.Dec(fNum), RB.Separator(), RB.Dec(fMax))
-		)
+		ME.actions.RBUTTON.text			= RB.Lang(ME.name, "WISPER").."/"..RB.Lang(ME.name, "INVITE")
+		ME.actions.RBUTTON.disabled	= (ME.socialCount.fNum==0 and ME.socialCount.gNum==0) and true or false
 	end
 end
 
 function ME.Tooltip(tooltip)
-	local members, gMax, sep = {}, GetNumGuildMembers(), false
-	if IsInGuild() then
-		for i=1,gMax do
-			--local name, rank, class, level, subClass, subLevel, isHeader, isCollapsed, dbid, guildTitle, IsOnLine, LogOutTime, Zone, Note = GetGuildRosterInfo(index)
-			local name, _, mClass, mLevel, sClass, sLevel, _,_,_,_, online, _, map, _ = GetGuildRosterInfo(i)
-			if name~=nil and online then
-				members[name] = RB.ColorByClass(mClass, name)
-				tooltip:AddDoubleLine(
-					sprintf("%s%s%s%s%s",
-						RB.ColorByClass(mClass, name), RB.Separator(),
-						RB.ColorByClass(mClass, sprintf("%s%d", mClass:sub(1,1), mLevel)), sLevel>0 and RB.Separator() or "",
-						sLevel>0 and RB.ColorByClass(sClass, sprintf("%s%d", sClass:sub(1,1), sLevel)) or ""
-					),
-					map or RB.Lang(ME.name, "NOLOCATION")
-				)
-			end
+	local friends, sep = "", false
+	ME.socialList	= ME.socialList	 or ME.GetSocialList(true)
+	for _,name in pairs(ME.socialListIndex) do
+		local data = ME.socialList[name]
+		if data.guild == true and data.online == true then
+			sep = true
+			RB.AddToTooltip(
+				{
+					RB.ColorByClass(data.pClass, name),
+					RB.ColorByClass(data.pClass, ("%s%d"):format(data.pClass:sub(1,1), data.pLevel)),
+					data.sLevel>0 and RB.ColorByClass(data.sClass, ("%s%d"):format(data.sClass:sub(1,1), data.sLevel)) or nil
+				},
+				data.location or RB.Lang(ME.name, "NOLOCATION")
+			)
+		end
+		if data.friend == true and data.online then
+			friends	= ("%s%s%s"):format(friends, #friends>0 and RB.Separator() or "", RB.ColorByClass(data.pClass, name))
 		end
 	end
-
-	local fMax	= GetFriendCount(DF_Socal_Token_Friend)
-	local list				= ""
-	for i=1, fMax do
-		local name, groupID, online, eachOther, unmodifiable, top, killMeCount, revengeCount, relationType, relationLv = GetFriendInfo(DF_Socal_Token_Friend, i)
-		if name~=nil and online then
-			list = sprintf("%s%s%s", list, #list>0 and RB.Separator() or "", members[name] or name)
-		end
+	if not sep then
+		RB.AddToTooltip(RB.Lang(ME.name, IsInGuild() and "GUILDNOONLINE" or "NOGUILD"))
 	end
-	if #list>0 then
-		tooltip:AddSeparator()
-		tooltip:AddLine(sprintf("%s: %s", RB.Lang(ME.name, "FRIENDLIST"), list))
-	end
+	RB.AddToTooltip("---")
+	RB.AddToTooltip(sprintf("%s: %s", RB.Lang(ME.name, "FRIENDLIST"), #friends>0 and friends or RB.Lang(ME.name, "FRIENDNOONLINE")))
 end
 
 function ME.Click(key, tooltip)
 	if key=="LBUTTON" then
-		ToggleUIFrame(GuildFrame)
 	elseif key=="RBUTTON" then
-		ToggleSocialFrame("Friend")
+		RB.modules.dropdown.ShowDropDown(tooltip, ME.DropDownHandler)
 	elseif key=="MBUTTON" then
 	end
+end
+
+function ME.DropDownHandler()
+	local DD 		= RB.modules.dropdown
+	for _,name in pairs(ME.socialListIndex) do
+		local data = ME.socialList[name]
+		if name~=UnitName("player") then
+			if (UIDROPDOWNMENU_MENU_LEVEL or 1)==1 then
+				if data.online then
+					DD.AddMenu(RB.ColorByClass(data.pClass, name), name)
+				end
+			elseif UIDROPDOWNMENU_MENU_LEVEL==2 then
+				if name==UIDROPDOWNMENU_MENU_VALUE then
+					DD.AddButton(RB.Lang(ME.name, "WISPER"), function(this) ChatFrame_SendTell(UIDROPDOWNMENU_MENU_VALUE) CloseDropDownMenus() end)
+					DD.AddButton(RB.Lang(ME.name, "INVITE"), function(this) InviteByName(UIDROPDOWNMENU_MENU_VALUE) CloseDropDownMenus() end)
+				end
+			end
+		end
+	end
+end
+
+function ME.GetSocialList(forceUpdate)
+	if not ME.socialList or forceUpdate==true then
+		RB.Debug(ME.name, "updating social list")
+		local fMax, gMax, i	= GetFriendCount(DF_Socal_Token_Friend), GetNumGuildMembers(DF_Socal_Token_Friend)
+		ME.socialList				= {}
+		ME.socialListIndex	= {}
+		ME.socialCount			= {fNum = 0, fMax = fMax, gNum = 0, gMax = gMax}
+		if IsInGuild() then
+			for i=1, gMax do
+				local name, rank, pClass, pLevel, sClass, sLevel, isHeader, isCollapsed, dbid, guildTitle, online, logOutTime, location, note = GetGuildRosterInfo(i)
+				if name and name~="" then
+					ME.socialCount.gNum	= ME.socialCount.gNum + (online and 1 or 0)
+					ME.socialList[name]	= {guild = true, friend = false, online = online, pClass = pClass, pLevel = pLevel, sClass = sClass, sLevel = sLevel, location = location}
+					table.insert(ME.socialListIndex, name)
+				end
+			end
+		end
+		for i=1, fMax do
+			local name, groupID, online, eachOther, unmodifiable, top, killMeCount, revengeCount, relationType, relationLv = GetFriendInfo(DF_Socal_Token_Friend, i)
+			if name and name~="" then
+				ME.socialCount.fNum	= ME.socialCount.fNum + (online and 1 or 0)
+				if ME.socialList[name]~=nil then
+					ME.socialList[name].friend = true
+				else
+					ME.socialList[name]	= {guild = false, friend = true, online = online, pClass = "unknown", pLevel = 0, sClass = "unknown", sLevel = 0}
+					table.insert(ME.socialListIndex, name)
+				end
+			end
+		end
+		table.sort(ME.socialListIndex)
+	end
+	return ME.socialList
 end
 
 function ME.GetFriendList()
@@ -114,10 +152,10 @@ function ME.GetFriendList()
 end
 
 function ME.SetFriendList(list)
-	if ME.importState>IMPORTSTATE_NONE or RB.settings.friendSync==false then return end
+	if ME.importState>IMPORTSTATE_NONE then return end
+	if RB.settings.friendSync==false then ME.importState = IMPORTSTATE_DONE return end
 	ME.importState = IMPORTSTATE_WORK
 	RB.Debug("start friend import")
-
 	refreshGroups = function()
 		local tmp = {}
 		for i=1, GetSocalGroupCount(DF_Socal_Token_Friend) do
@@ -126,10 +164,8 @@ function ME.SetFriendList(list)
 		end
 		return tmp
 	end
-
 	local localFriends		= ME.GetFriendList()
 	local groups					= refreshGroups()
-
 	for name, group in pairs(list) do
 		if name~=UnitName("player") then
 			if not IsMyFriend(name) then
@@ -142,7 +178,6 @@ function ME.SetFriendList(list)
 			SetFriendGroup(DF_Socal_Token_Friend, name, groups[group])
 		end
 	end
-
 	for name,_ in pairs(localFriends) do
 		if name~=UnitName("player") then
 			if IsMyFriend(name) and list[name]==nil then
@@ -150,7 +185,6 @@ function ME.SetFriendList(list)
 			end
 		end
 	end
-
 	ME.importState = IMPORTSTATE_DONE
 end
 
@@ -168,8 +202,14 @@ ME.CHAT_MSG_GUILD		= ChatBeep
 ME.CHAT_MSG_PARTY		= ChatBeep
 ME.CHAT_MSG_WHISPER	= ChatBeep
 
-function InviteRequest(event, name)
-	RB.Debug("InviteReuest", event, name)
+function HandleRequest_OnUpdate(elapsedTime)
+	RB.UnregisterEvent(ME.name, "ONUPDATE")
+	AgreeTrade()
+end
+
+function HandleRequest(event, ...)
+	local name, arg1, arg2 = select(1,...), select(1,...), select(2,...)
+	RB.Debug("HandleRequest", event, arg1, arg2)
 	local function IsInMyGuild(name)
 		for i=1, GetNumGuildMembers() do
 			local guildi = GetGuildRosterInfo(i)
@@ -191,14 +231,35 @@ function InviteRequest(event, name)
 			if StaticPopup1:IsVisible() then StaticPopup1:Hide() end
 		end
 	end
+	if event=="TRADE_REQUEST" then
+		if	(RB.settings["acceptTradeFriend"] and IsMyFriend(name)) or
+				(RB.settings["acceptTradeGuild"] and IsInMyGuild(name)) then
+			RB.RegisterEvent(ME.name, "ONUPDATE", HandleRequest_OnUpdate)
+			local popup = StaticPopup_Visible("TRADE")
+			if popup then getglobal(popup):Hide() end
+		end
+	end
+	if event=="TRADE_ACCEPT_UPDATE" then
+		for i=1,8 do
+			_, name = GetTradePlayerItemInfo(i);
+			if name then return end
+		end
+		if GetTradePlayerMoney()>0 then return end
+		if (arg1 == 0 and arg2 == 1) or (arg1 == 1 and arg2 == 2) then
+			RB.Debug("AcceptTrade", arg1, arg2)
+			AcceptTrade("")
+		end
+	end
 	if event=="DUEL_REQUESTED" and RB.settings["declineDuel"] then
 		CancelDuel()
 		if StaticPopup1:IsVisible() then StaticPopup1:Hide() end
 	end
 end
 
-ME.PARTY_INVITE_REQUEST	= InviteRequest
-ME.RIDE_INVITE_REQUEST 	= InviteRequest
-ME.DUEL_REQUESTED				= InviteRequest
+ME.PARTY_INVITE_REQUEST	= HandleRequest
+ME.RIDE_INVITE_REQUEST 	= HandleRequest
+ME.TRADE_REQUEST 				= HandleRequest
+ME.TRADE_ACCEPT_UPDATE	= HandleRequest
+ME.DUEL_REQUESTED				= HandleRequest
 
 RB.RegisterButton("social", ME)

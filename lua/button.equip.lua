@@ -31,7 +31,7 @@ end
 
 function ME.Update(event, ...)
 	RB.Debug(ME.name, event)
-	local aInv,aBag,dura	= 0, 0, 0
+	local aInv,aBag,dura, hID	= 0, 0, 0, 201967
 	local _,_,aName				= GetInventoryItemDurable("player", 9)
 	if aName then
 		aInv,aBag			= GetInventoryItemCount("player", 9), GetCountInBagByName(aName)
@@ -51,6 +51,16 @@ function ME.Update(event, ...)
 					end
 				end
 			end
+		elseif RB.settings.autoRepairSlots[i]==true then
+			local dVal, dMax, iName = GetInventoryItemDurable("player", i)
+			if iName then
+				dura			= ((dura==0 and 1 or dura) + (1 / dMax * math.min(dVal, dMax))) / 2
+				if dMax>=101 and dVal<=100 and GetBagItemCount(hID)>0 then
+					UseItemByName(TEXT("Sys"..hID.."_name"))
+					PickupEquipmentItem(i)
+					RB.Print(RB.Lang(ME.name, "REPAIRING", {RB.ColorByRarity(GetInventoryItemQuality("player", i), iName)}))
+				end
+			end
 		elseif i~=9 and i~=17 then
 			local dVal, dMax, iName = GetInventoryItemDurable("player", i)
 			if iName then
@@ -59,7 +69,7 @@ function ME.Update(event, ...)
 		end
 	end
 	RB.UpdateButtonText(ME.name,
-		RB.Lang(ME.name, "DURA_SHORT", {RB.ColorByPercent(dura, 1, false, tostring(math.floor(100*dura)).."%")}),
+		RB.Lang(ME.name, "DURA_SHORT", {RB.ColorByPercent(dura, 1, false, tostring(math.floor(100*dura)).."%%")}),
 		aName and RB.Lang(ME.name, "AMMO_SHORT", {RB.ColorByPercent(aInv, 999, false)}) or nil,
 		RB.ColorByName("white", GetEuipmentNumber())
 	)

@@ -1,4 +1,4 @@
---======================== Class ======================
+--======================== Macro ======================
 
 local RB = _G.RoMBar
 local ME = {
@@ -18,8 +18,19 @@ local ME = {
 		"MacroCD",
 		"SH_loot",
 		"SH_unbox",
+		"TQ_Logar",
+		"GetNextFreeBagSlot",
 	},
 	macroSlots	= {},
+	npcData = {	-- some usefull npc positions
+		[178]			= { name = "Schwarzes Brett von Logar",							friendly = true,	zone = 1,		xPos = 0.5132465363,	yPos = 0.4033938944 },
+		[162]			= { name = "Meydo",																	friendly = true,	zone = 1,		xPos = 0.5261850357,	yPos = 0.4194592834 },
+		[198]			= { name = "Cid",																		friendly = true,	zone = 1,		xPos = 0.5164897442,	yPos = 0.4325945973 },
+		[366]			= { name = "Dell",																	friendly = true,	zone = 1,		xPos = 0.5106179118,	yPos = 0.4246239364 },
+		[313]			= { name = "Schwarzes Brett im Harf-Handelsposten",	friendly = true,	zone = 5,		xPos = 0.4659762383,	yPos = 0.2174482346 },
+		[398]			= { name = "Tanilof",																friendly = true,	zone = 5,		xPos = 0.4760056734,	yPos = 0.2194341868 },
+		[611]			= { name = "Anthony Taz",														friendly = true,	zone = 22,	xPos = 0.4723008573,	yPos = 0.5794661045 },
+	},
 }
 
 function ME.Init()
@@ -32,6 +43,9 @@ function ME.Init()
 			end
 		end
 	end
+	-- short for ingame macro functions
+	_G.SCL			= _G.SlashCmdList
+	_G.SLASH_F1 = "/f"
 end
 
 function ME.FindString(str, root)
@@ -469,5 +483,17 @@ end
 -- 		end
 -- 	end
 -- end
+
+function ME.GetNextFreeBagSlot(start, finish)
+	start		= start or 1
+	finish	= finish or 180
+	for i = start,finish do
+		local bagID,_,item,_,_,_ = GetBagItemInfo(i)
+		if not item or item=="" then
+			return bagID
+		end
+	end
+	return false
+end
 
 RB.RegisterModule("macro", ME)

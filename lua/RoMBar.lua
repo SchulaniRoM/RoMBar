@@ -86,6 +86,7 @@ end
 
 function Arglist(withKey, ...)
 	local txt, sep = '', withKey and "\n" or " "
+	local args = (select("#",...)==1 and type(select(1,...))=="table") and select(1,...) or {...}
 	local types = {
 		['number']		= {[false] = "|cff00ff00%d|r",		[true] = "%s = |cff00ff00%d (num)|r"},
 		['function']	= {[false] = "|cffff0000%s()|r",	[true] = "%s = |cffff0000%s() (func)|r"},
@@ -95,7 +96,7 @@ function Arglist(withKey, ...)
 		['boolean']		= {[false] = "|cff0000ff%s|r",		[true] = "%s = |cff0000ff%s|r"},
 		['other']			= {[false] = "|cffffffff%s|r",		[true] = "%s = |cffffffff%s|r"},
 	}
-	for k,arg in pairs({...}) do
+	for k,arg in pairs(args) do
 		if type(arg)=="number" then												v = tonumber(arg)
 		elseif type(arg)=="function" then									v = k
 		elseif type(arg)=="table" and arg.GetParent then	v = arg:GetName()
@@ -162,6 +163,7 @@ function RB.OnEvent(event, ...)
 			if type(object)=="function" or (type(object)=="table" and (object.loaded and object.initialized)) then
 				local func = type(object)=="function" and object or (object[event] or object.Update)
 				if func and type(func)=="function" then
+					RB.Debug("OnEvent", event, ...)
 					local success, errMsg = pcall(func, event, ...)
 					assert(success, errMsg)
 				end
@@ -194,8 +196,8 @@ function RB.UnregisterEvent(name, event)
 		return
 	end
 	if event then
-		if name~="main" then button, name, _ = RB.GetButton(name) end
 		if RB.events[event] and RB.events[event][name] then
+			RB.Debug("UnregisterEvent", event, name)
 			RB.events[event][name]	= nil
 		end
 		if TableIsEmpty(RB.events[event]) then
@@ -246,9 +248,8 @@ function RB.SAVE_VARIABLES()
 end
 
 function RB.WARNING_MEMORY()
--- 	if StaticPopupDialogs["WARNING_MEMORY"]:IsVisible() then
--- 		ClickRequestDialogButton(0)
--- 	end
+	local popup = StaticPopup_Visible("WARNING_MEMORY")
+	if popup then getglobal(popup):Hide() end
 	RB.Print(TEXT("SYSTEM_WARNING_MEMORY"))
 end
 
@@ -554,7 +555,6 @@ function RB.RegisterButton(name, object)
 	object.loaded							= true
 	object.initialized				= false
 	object.actions						= object.actions or {}
-
 	for c,b in pairs({LCLICK = "LBUTTON", RCLICK = "RBUTTON", MCLICK = "MBUTTON"}) do
 		object.actions[b]						= object.actions[b] or {}
 		object.actions[b].text			= object.actions[b].text or RB.Lang(name, c, nil, "")
@@ -648,6 +648,7 @@ function RB.ShowTooltip(event, frame)
 		tooltip:SetText(RB.ColorByName("yellow", VarFunc(button, "title", RB.Lang(button.name, "TITLE"))))
 		tooltip:AddSeparator(1, 1, 1)
 		tooltip:Show()
+		tooltip.data	= {name=name}
 
 		if button.Tooltip then
 			button.Tooltip(tooltip)
@@ -728,6 +729,11 @@ end
 function RB.Error(str, ...)
 	str = select("#",...)>0 and tostring(str):format(...) or tostring(str)
 	DEFAULT_CHAT_FRAME:AddMessage(str, .9, .3, .3)
+	for k=1,10 do
+		if GetChatWindowInfo(k):lower()=="debug" then
+			getglobal("ChatFrame"..k):AddMessage(str, .9, .3, .3)
+		end
+	end
 end
 
 function RB.Format(text, object)
@@ -769,8 +775,9 @@ function RB.RGB2HEX(arg1, arg2, arg3)
 end
 
 function RB.Dec(value)
-	local val = MoneyNormalization(math.abs(value or 0))
-	return value<0 and RB.ColorByName("red", "-"..val) or tostring(val)
+	local value = value and (type(value)=="string" and tonumber(value) or value) or 0
+	local val 	= tostring(MoneyNormalization(math.abs(value)))
+	return value<0 and "-"..val or val
 end
 
 function RB.ColorByClass(class, text)
@@ -790,14 +797,15 @@ function RB.ColorByClass(class, text)
 			PSYRON			= {0.04, 0.00, 1.00},
 			HARPSYN			= {0.58, 0.28, 1.00},
 			DUELIST			= {0.50, 0.50, 0.50},
+			UNKNOWN			= {0.90, 0.90, 0.90},
 		}) do
 			RB.colors.classes.WOW[token]													= RB.RGB2HEX(color)
 			RB.colors.classes.WOW[TEXT("SYS_CLASSNAME_"..token)]	= RB.colors.classes.WOW[token]
-			RB.colors.classes.ROM[token]													= RB.RGB2HEX(g_ClassColors[token] and g_ClassColors[token] or {.5, .5, .5})
+			RB.colors.classes.ROM[token]													= RB.RGB2HEX(g_ClassColors[token] and g_ClassColors[token] or {0.90, 0.90, 0.90})
 			RB.colors.classes.ROM[TEXT("SYS_CLASSNAME_"..token)]	= RB.colors.classes.ROM[token]
 		end
 	end
-	color	= RB.settings.useWoWColors==true and RB.colors.classes.WOW[class] or RB.colors.classes.ROM[class]
+	color	= RB.settings.useWoWColors==true and RB.colors.classes.WOW[class or "UNKNOWN"] or RB.colors.classes.ROM[class or "UNKNOWN"]
 	return RB.ColorTag(color, text)
 end
 
@@ -865,14 +873,21 @@ end
 
 function RB.ColorPosNeg(value, reverse, text)
 	local pn 		= {[-1] = "BE3B3B", [0] = "3BBE3B", [1] = "3BBE3B"}
-	local val		= value~=0 and math.floor(reverse and (value / -value) or (value / value)) or 0
--- 	local text	= (text==nil or type(text)=="number") and RB.Dec(text or value) or tostring(text)
+	local val		= value~=0 and math.floor(reverse and (value / value) or (value / -value)) or 0
+	local color	= pn[val]
 	return RB.ColorTag(color, text or value)
 end
 
 function RB.ColorTag(color, value)
 	local text	= value==nil and "" or (type(value)=="number" and RB.Dec(value) or tostring(value))
 	return sprintf("|cff%s%s%s", color or "ffffff", text, #text>0 and "|r" or "")
+end
+
+function RB.GetModifierStatus()
+	local a = IsAltKeyDown() and "A" or "a"
+	local c = IsCtrlKeyDown() and "C" or "c"
+	local s = IsShiftKeyDown() and "S" or "s"
+	return s..c..a, (s=="s"), (c=="c"), (a=="a")
 end
 
 function RB.GetBankItemCount(item, IsOnly)

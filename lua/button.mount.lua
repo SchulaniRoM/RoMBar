@@ -3,7 +3,7 @@
 local RB = _G.RoMBar
 local ME = {
 	icon			= RB.addonPath.."/textures/SaddleGrey",
-	events		= {"LOADING_END", "ZONE_CHANGED", "UNIT_BUFF_CHANGED", "PLAYER_BAG_CHANGED", "EXCHANGECLASS_CLOSED", "PLAYER_ALIVE"},
+	events		= {"LOADING_END", "ZONE_CHANGED", "UNIT_BUFF_CHANGED", "PLAYER_BAG_CHANGED", "EXCHANGECLASS_CLOSED", "PLAYER_ALIVE"},	-- ENTER_MOUNT?
 	mounts		= {},
 	numMounts	= 0,
 }

@@ -28,12 +28,17 @@ local function ToggleValue(this)
 end
 
 local function SetValue(this)
-	RB.Debug("ToggleValue", UIDROPDOWNMENU_MENU_VALUE, this.value)
+	RB.Debug("SetValue", UIDROPDOWNMENU_MENU_VALUE, this.value)
 	if RB.settings[UIDROPDOWNMENU_MENU_VALUE] then
 		RB.settings[UIDROPDOWNMENU_MENU_VALUE]	= this.value
 		RB.UpdateUI()
 	end
 	UIDropDownMenu_Refresh(RB.modules.dropdown.GetDropDownFrame())
+end
+
+local function SetAutoRepairSlot(this)
+	RB.Debug("SetAutoRepairSlot", UIDROPDOWNMENU_MENU_VALUE, this.value)
+	RB.settings.autoRepairSlots[this.value] = not RB.settings.autoRepairSlots[this.value]
 end
 
 function ME.Title()
@@ -48,39 +53,50 @@ function ME.DropDownHandler()
 		DD.AddMenu(RB.Lang(ME.name, "AUTOMATIC"), 2)
 	elseif UIDROPDOWNMENU_MENU_LEVEL==2 then
 		if UIDROPDOWNMENU_MENU_VALUE==1 then
-			DD.AddCheckBox(RB.Lang(ME.name, "ONTOP"), RB.settings.top, "top", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "ORIGINALUI"), RB.settings.originalUI, "originalUI", ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "ONTOP"), 						RB.settings.top,											"top",								ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "ORIGINALUI"), 				RB.settings.originalUI,								"originalUI",					ToggleValue)
 			DD.AddSeparator()
-			DD.AddCheckBox(RB.Lang(ME.name, "CLICK2MOVE"), GC_GetMouseMoveEnable(), "click2move", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "LOCKAB"), GetActionBarLocked(), "lockAB", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "TOOLTIPPOS"), RB.settings.actionbarTooltip.enabled, "actionbarTooltip", ToggleValue)
-			DD.AddCheckMenu(RB.Lang(ME.name, "TOOLTIPSCALE", RB.settings.tooltipScale), false, "tooltipScale")
-			DD.AddCheckBox(RB.Lang(ME.name, "WOWCOLORS"), RB.settings.useWoWColors, "useWoWColors", ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "CLICK2MOVE"), 				GC_GetMouseMoveEnable(),							"click2move",					ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "LOCKAB"), 						GetActionBarLocked(),									"lockAB",							ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "TOOLTIPPOS"),				RB.settings.actionbarTooltip.enabled,	"actionbarTooltip",		ToggleValue)
+			DD.AddCheckMenu(RB.Lang(ME.name, "TOOLTIPSCALE"),			true,																	"tooltipScale")
+			DD.AddCheckBox(RB.Lang(ME.name, "WOWCOLORS"),					RB.settings.useWoWColors,							"useWoWColors",				ToggleValue)
 			DD.AddSeparator()
-			DD.AddCheckBox(RB.Lang(ME.name, "GUILDBEEP"), RB.settings.beepGuild, "beepGuild", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "PARTYBEEP"), RB.settings.beepParty, "beepParty", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "WISPERBEEP"), RB.settings.beepWisper, "beepWisper", ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "GUILDBEEP"),					RB.settings.beepGuild,								"beepGuild",					ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "PARTYBEEP"),					RB.settings.beepParty,								"beepParty",					ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "WISPERBEEP"),				RB.settings.beepWisper,								"beepWisper",					ToggleValue)
 			DD.AddSeparator()
-			DD.AddCheckBox("Debug", RB.settings.debug, "debug", ToggleValue)
+			DD.AddCheckBox("Debug",																RB.settings.debug,										"debug",							ToggleValue)
 		elseif UIDROPDOWNMENU_MENU_VALUE==2 then
-			DD.AddCheckBox(RB.Lang(ME.name, "AUTOREPAIR"), RB.settings.autoRepair, "autoRepair", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "SKIPDIALOGS"), RB.settings.skipDialogs, "skipDialogs", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "FRIENDSYNC"), RB.settings.friendSync, "friendSync", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "BOSSBELL"), RB.settings.bossBell, "bossBell", ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "AUTOREPAIR"),				RB.settings.autoRepair,								"autoRepair",					ToggleValue)
+			DD.AddCheckMenu(RB.Lang(ME.name, "AUTOREPAIRSLOTS"),	RB.settings.autoRepairSlots.enabled,	"autoRepairSlots",		ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "SKIPDIALOGS"),				RB.settings.skipDialogs,							"skipDialogs",				ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "FRIENDSYNC"),				RB.settings.friendSync,								"friendSync",					ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "BOSSBELL"),					RB.settings.bossBell,									"bossBell",						ToggleValue)
 			DD.AddSeparator()
-			DD.AddCheckBox(RB.Lang(ME.name, "FRIENDPARTY"), RB.settings.acceptPartyFriend, "acceptPartyFriend", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "GUILDPARTY"), RB.settings.acceptPartyGuild, "acceptPartyGuild", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "FRIENDRIDE"), RB.settings.acceptRideFriend, "acceptRideFriend", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "GUILDRIDE"), RB.settings.acceptRideGuild, "acceptRideGuild", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "DECLINEDUELL"), RB.settings.declineDuel, "declineDuel", ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "FRIENDPARTY"),				RB.settings.acceptPartyFriend,				"acceptPartyFriend",	ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "GUILDPARTY"),				RB.settings.acceptPartyGuild,					"acceptPartyGuild",		ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "FRIENDRIDE"),				RB.settings.acceptRideFriend,					"acceptRideFriend",		ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "GUILDRIDE"),					RB.settings.acceptRideGuild,					"acceptRideGuild",		ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "FRIENDTRADE"),				RB.settings.acceptTradeGuild,					"acceptTradeGuild",		ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "GUILDTRADE"),				RB.settings.acceptTradeGuild,					"acceptTradeGuild",		ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "AUTOTRADE"),					RB.settings.autoTrade,								"autoTrade",					ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "DECLINEDUELL"),			RB.settings.declineDuel,							"declineDuel",				ToggleValue)
 			DD.AddSeparator()
-			DD.AddCheckBox(RB.Lang(ME.name, "AUTOAMULET"), RB.settings.autoSwapAmulets, "autoSwapAmulets", ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "AUTOAMMO"), RB.settings.autoEquipAmmo, "autoEquipAmmo", ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "AUTOAMULET"),				RB.settings.autoSwapAmulets,					"autoSwapAmulets",		ToggleValue)
+			DD.AddCheckBox(RB.Lang(ME.name, "AUTOAMMO"),					RB.settings.autoEquipAmmo,						"autoEquipAmmo",			ToggleValue)
 		end
 	elseif UIDROPDOWNMENU_MENU_LEVEL==3 then
 		if UIDROPDOWNMENU_MENU_VALUE=="tooltipScale" then
 			for i=60, 100, 5 do
 				DD.AddCheckBox(i.."%", i==RB.settings.tooltipScale, i, SetValue)
+			end
+		end
+		if UIDROPDOWNMENU_MENU_VALUE=="autoRepairSlots" then
+			for i=1, 17 do
+				if i~=9 and i~=8 then
+					DD.AddCheckBox(RB.Lang("equip", "SLOT"..i), RB.settings.autoRepairSlots[i], i, SetAutoRepairSlot)
+				end
 			end
 		end
 	end
