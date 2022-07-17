@@ -30,9 +30,11 @@ local defaultsPerChar = {
 	acceptRideGuild 	= true,		-- button.social
 	acceptTradeFriend	= true,		-- button.social
 	acceptTradeGuild	= true,		-- button.social
+	acceptTradeParty	= true,		-- button.social
 	autoTrade					= true,		-- button.social
 	declineDuel 			= true,		-- button.social
-	friendSync				= false,	-- button.social
+	friendSync				= true,		-- button.social
+	autoHouseFriend		= true,		-- button.social
 	titleList					= {},			-- button.player
 	lastMount					= "",			-- button.mount
 	lastPetSlot				= 1,			-- button.pet
@@ -43,6 +45,6 @@ local defaultsPerChar = {
 }
 
 local buttons		= {{"macro", "player", "craft"}, {"mount", "pet", "titlequest", "equip", "social", "money", "lootit", "bag", "mail", "timetravel", "config"}}
-local modules		= {"locale", "dropdown", "dialogs", "events", "macro", "fusion"}
+local modules		= {"locale", "dropdown", "dialogs", "events", "macro", "fusion", "hooks"}
 
 return defaultsPerChar, buttons, modules

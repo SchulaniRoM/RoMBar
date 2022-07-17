@@ -26,7 +26,7 @@ local function ParseItem(bagID)
 		local id, bound, data, stat12, stat34, stat56, rune1, rune2, rune3, rune4, dura, hash = string.match(iLink,"(%x+) (%x+) (%x+) (%x+) (%x+) (%x+) (%x+) (%x+) (%x+) (%x+) (%x+) (%x+)")
 		id	= tonumber(id, 16)
 		if id >= 210000 and id < 240000 then
-			if string.match(bound,"%x*(%x)$") and tonumber(string.match(bound,"%x*(%x)$"),16) >=8 then --Gesperrte/nicht fusionierbare items
+			if string.match(bound,"%x*(%x)$") and tonumber(string.match(bound,"%x*(%x)$"),16) >=8 then -- nicht fusionierbare items
 				return nil
 			end
 			local item = {
@@ -73,6 +73,17 @@ local function ParseItem(bagID)
 	return nil
 end
 
+function ME.TestItem(bagID)
+	local item = ParseItem(bagID)
+	if item then
+		RB.Debug("TestItem", arglist(item))
+		return true
+	else
+		RB.Debug("TestItem", false)
+		return false
+	end
+end
+
 function ME.GetNextItem()
 	for i=1,180 do
 		local bagID,_,_,itemCount,locked,invalid = GetBagItemInfo(i)
@@ -114,7 +125,7 @@ end
 
 local function Process()
 	local chk,i,j
--- 	while true do
+	while true do
 		-- check finish
 		local _,item = GetGoodsItemInfo(51)
 		if item==TEXT("Sys"..(ME.manaStoneT1+ME.maxGrade-1).."_name") then
@@ -180,17 +191,17 @@ local function Process()
 			PickupBagItem(53)
 			coroutine.yield()
 		end
--- 		-- transmute
--- 		if GetMagicBoxEnergy()<=0 then
--- 			RB.Error(RB.Lang(ME.name, "NO_MORE_ENERGY"))
--- 			return false
--- 		end
--- 		if chk~=false then
--- 			RB.Print("transmute")
--- -- 			MagicBoxRequest()
--- 			coroutine.yield()
--- 		end
--- -- 	end
+		-- transmute
+		if GetMagicBoxEnergy()<=0 then
+			RB.Error(RB.Lang(ME.name, "NO_MORE_ENERGY"))
+			return false
+		end
+		if chk~=false then
+			RB.Print("transmute")
+			MagicBoxRequest()
+			coroutine.yield()
+		end
+	end
 end
 
 function ME.FuseDirty(maxGrade, itemFilter)
@@ -207,6 +218,7 @@ function ME.FuseDirty(maxGrade, itemFilter)
 		ME.fuseDirty						= (itemFilter and type(itemFilter)=="table") and itemFilter or ME.defaultItemFilter
 		ME.fuseDirty.coroutine	= coroutine.create(Process)
 		RB.RegisterEvent(ME.name, "ONUPDATE", ME.FuseDirty)
+-- 		Process()
 	end
 end
 

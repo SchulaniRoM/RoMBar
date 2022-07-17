@@ -58,11 +58,12 @@ end
 local function SetTime(event, arg1)
 	if arg1:find("_(%d+)_(%d+).bmp") then
 		local year, month, day, hour, minute, second = arg1:match("_(%d%d%d%d)(%d%d)(%d%d)_(%d%d)(%d%d)(%d%d).bmp")
-		OS_BASETIME = os.time({
+		local timeObj = {
 			year = tonumber(year), month = tonumber(month), day = tonumber(day),
-			hour = tonumber(hour), min = tonumber(minute), sec = tonumber(second)
-		})-GetTime()
-		RB.Debug("SetTime", year, month, day, hour, minute, second)
+			hour = tonumber(hour), min = tonumber(minute), sec = tonumber(second),
+		}
+		OS_BASETIME = os.time(timeObj)-GetTime()
+		RB.Debug("SetTime", Arglist(true, timeObj))
 		RB.UnregisterEvent(ME.name, "CHAT_MSG_SYSTEM")
 	end
 end

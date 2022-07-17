@@ -12,19 +12,13 @@ local ME = {
 }
 
 function ReadTitles()
-	local tTotal, tmp		= GetTitleCount(), {}
-	if tTotal==0 then
-		AchievementTitleFrame:Show()
-		AchievementTitleFrame:Hide()
-		tTotal = GetTitleCount()
-	end
-	if tTotal>0 then
-		RB.Debug("ReadTitles", tTotal)
-		for i=0, tTotal do
-			_,tid	= GetTitleInfoByIndex(i)		-- name, titleID, geted, icon, classify1, classify2, note, brief, rare = GetTitleInfoByIndex( index )
-			if tid and tid>0 then
-				tmp[tid]	= i
-			end
+	local tTotal, tmp = GetTitleCount() or 800, {}
+	if tTotal<=0 then return nil end
+	RB.Debug("ReadTitles", tTotal)
+	for i=0, tTotal do
+		name,tid	= GetTitleInfoByIndex(i)		-- name, titleID, geted, icon, classify1, classify2, note, brief, rare = GetTitleInfoByIndex( index )
+		if tid and tid>0 then
+			tmp[tid]	= {idx = i, title = name}
 		end
 	end
 	return tmp
@@ -33,14 +27,14 @@ end
 function ME.GetTitle(id)
 	if not ME.titles then ME.titles = ReadTitles() end
 	local title, icon, text = RB.Lang(ME.name, "NOTITLE"), "interface/icons/quest_paperstack03", ""
-	if ME.titles[id] then
-		local name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id])
+	if ME.titles and ME.titles[id] then
+		local name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id].idx)
 		if geted then
 			if name=="???" then
 				AchievementTitleFrame:Show()
 				AchievementTitleFrame:Hide()
-				ME.titles = ReadTitles()()
-				name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id])
+				ME.titles = ReadTitles()
+				name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id].idx)
 			end
 			title = name
 			icon	= ico
@@ -68,19 +62,26 @@ function ME.Update(event, ...)
 end
 
 function ME.ELITE_BOSS_BELL(event, msg, ...)
-	if RB.settings.bossBell==true then
+	if RB.settings.bossBell==true and IsInGuild() then
 		RB.Debug(ME.name, event, msg, ...)
 		local m				= GetCurrentWorldMapID()
 		local x, y		= GetPlayerWorldMapPos(m)
 		local object	= {
-			name		= msg:gsub("Ihr seid(.*)schon sehr nahe gekommen. Seid bitte vorsichtig!", "%1"),
+			name		= msg:gsub("Ihr seid(.*)schon sehr nahe gekommen. Seid bitte vorsichtig!", "%1"),	-- TODO localize
 			x				= math.floor(1000*x)/10,
 			y				= math.floor(1000*y)/10,
 			zone		= GetZoneName(),
 			channel	= GetCurrentParallelID() or 1,
+			time		= os.time(),
 		}
 		object.name = object.name:match("^[%s%c]*(.-)[%s%c]*$")
 		if object.name and object.name~="" then
+			if ME.lastBoss and ME.lastBoss.name==object.name then
+				if os.difftime(object.time, ME.lastBoss.time)<60*60*60 then	-- TODO check this. only one per hour
+					return
+				end
+			end
+			ME.lastBoss = object
 			SendChatMessage(RB.Format(RB.Lang(ME.name, "BOSS_BELL"), object), "guild")
 		end
 	end
@@ -135,8 +136,13 @@ function ME.DropDownHandler()
 		DD.AddTitle(RB.Lang(ME.name, "TITLE"))
 		DD.AddCheckBox(RB.Lang(ME.name, "NOTITLE"), not GetCurrentTitle(), 0, ChangeTitle)
 		RB.settings.titleList	= RB.settings.titleList or {}
+		if not ME.titles then ME.titles = ReadTitles() end
+		if not ME.titles then return end
 		for id,_ in pairs(RB.settings.titleList) do
-			DD.AddCheckBox(ME.GetTitle(id), GetCurrentTitle()==id, id, ChangeTitle)
+			if ME.titles and ME.titles[id] then
+				local _,_,geted = GetTitleInfoByIndex(ME.titles[id].idx)		-- name, titleID, geted, icon, classify1, classify2, note, brief, rare = GetTitleInfoByIndex( index )
+				if geted then DD.AddCheckBox(ME.GetTitle(id), GetCurrentTitle()==id, id, ChangeTitle) end
+			end
 		end
 	end
 end

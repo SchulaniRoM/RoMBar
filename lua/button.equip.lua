@@ -3,7 +3,7 @@
 local RB = _G.RoMBar
 local ME = {
 	icon			= {"Interface/gameicon/gameicon", 0.25, 0.375, 0.5, 0.625},
-	events		= {"PLAYER_EQUIPMENT_UPDATE", "PLAYER_BAG_CHANGED", "BAG_ITEM_UPDATE", "STORE_OPEN", "TP_EXP_UPDATE"},
+	events		= {"CLICKACTION", "PLAYER_EQUIPMENT_UPDATE", "PLAYER_BAG_CHANGED", "BAG_ITEM_UPDATE", "STORE_OPEN", "TP_EXP_UPDATE"},
 	blacklist = {
 		[221396] = 1, [221397] = 1, [221398] = 1, [221399] = 1,
 		[221400] = 1, [221401] = 1, [221402] = 1, [221403] = 1,
@@ -31,7 +31,7 @@ end
 
 function ME.Update(event, ...)
 	RB.Debug(ME.name, event)
-	local aInv,aBag,dura, hID	= 0, 0, 0, 201967
+	local aInv,aBag,dura	= 0, 0, 0
 	local _,_,aName				= GetInventoryItemDurable("player", 9)
 	if aName then
 		aInv,aBag			= GetInventoryItemCount("player", 9), GetCountInBagByName(aName)
@@ -51,16 +51,6 @@ function ME.Update(event, ...)
 					end
 				end
 			end
-		elseif RB.settings.autoRepairSlots[i]==true then
-			local dVal, dMax, iName = GetInventoryItemDurable("player", i)
-			if iName then
-				dura			= ((dura==0 and 1 or dura) + (1 / dMax * math.min(dVal, dMax))) / 2
-				if dMax>=101 and dVal<=100 and GetBagItemCount(hID)>0 then
-					UseItemByName(TEXT("Sys"..hID.."_name"))
-					PickupEquipmentItem(i)
-					RB.Print(RB.Lang(ME.name, "REPAIRING", {RB.ColorByRarity(GetInventoryItemQuality("player", i), iName)}))
-				end
-			end
 		elseif i~=9 and i~=17 then
 			local dVal, dMax, iName = GetInventoryItemDurable("player", i)
 			if iName then
@@ -78,6 +68,27 @@ end
 function ME.STORE_OPEN()
 	if RB.settings.autoRepair and GetEquipmentRepairAllMoney()>0 then
 		ClickRepairAllButton()
+	end
+end
+
+function ME.CLICKACTION()
+	if true then return end
+
+
+	if RB.settings.autoRepairSlots.enabled~=true then return end
+	local hID = 201967
+	for i,enabled in pairs(RB.settings.autoRepairSlots) do
+		if type(i)=="number" and enabled==true then
+			local dVal, dMax, iName = GetInventoryItemDurable("player", i)
+			if iName then
+-- 				if dMax>=101 and dVal<=100 and GetBagItemCount(hID)>0 then
+					UseItemByName(TEXT("Sys"..hID.."_name"))
+					PickupEquipmentItem(i)
+-- 					CancelPendingItem()
+					RB.Print(RB.Lang(ME.name, "REPAIRING", {RB.ColorByRarity(GetInventoryItemQuality("player", i), iName)}))
+-- 				end
+			end
+		end
 	end
 end
 
@@ -143,7 +154,7 @@ function ME.Click(key, tooltip)
 	if key=="LBUTTON" then
 		ToggleCharacter("EquipmentFrame")
 	elseif key=="RBUTTON" then
-		SwapEquipmentItem(GetEuipmentNumber() % 2)
+		SwapEquipmentItem((GetEuipmentNumber()+1) % CharactFrame_GetEquipSlotCount())
 	elseif key=="MBUTTON" then
 		StaticPopupDialogs["ROMBAR_REPAIR_ITEMS"] = {
 			text 					= RB.Lang(ME.name, "REPAIRDIALOG"),

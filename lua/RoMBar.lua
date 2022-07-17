@@ -1,5 +1,5 @@
 
-RB = {
+local RB = {
 	addonName							= "Extended RoMBar",
 	addonAuthor						= "Schulani & Celesteria@Kerub",
 	addonVersion					= 2.16,
@@ -7,7 +7,7 @@ RB = {
 	addonSettings					= "RoMBarSettings",
 	addonProfile					= "RoMBarProfile",
 	-- internal
-	updateEventInterval		= 1,
+	updateEventInterval		= .2,
 	coroutineInterval			= .2,
 	buttonHolder					= {},
 	buttonIndex						= {},
@@ -77,6 +77,24 @@ local function Trim(str)
 	return str
 end
 
+function Split(str, delim, limit)
+	str 	=str and tostring(str) or ""
+	delim	= delim and tostring(delim) or ",[%s%c]*"
+	limit = tonumber(limit) and tonumber(limit) or 0
+	if not str:find(delim) then return {str} end
+	local res, lastPos = {}, 0
+	local pat = sprintf("(.-)%s()", delim)
+	for part, pos in str:gfind(pat) do
+		res[#res+1] = part
+		lastPos			= pos
+		if #res == limit then break end
+	end
+	if #res ~= limit then
+		res[#res+1] = str:sub(lastPos)
+	end
+	return res
+end
+
 local function VarFunc(tbl, var, default, ...)
 	local varV, varF = tostring(var):lower(), tostring(var):sub(1,1):upper() .. tostring(var):sub(2):lower()
 	if tbl[varF] and type(tbl[varF])=="function" then return tbl[varF](...) end
@@ -85,7 +103,7 @@ local function VarFunc(tbl, var, default, ...)
 end
 
 function Arglist(withKey, ...)
-	local txt, sep = '', withKey and "\n" or " "
+	local txt, sep = '', withKey and " - " or " "
 	local args = (select("#",...)==1 and type(select(1,...))=="table") and select(1,...) or {...}
 	local types = {
 		['number']		= {[false] = "|cff00ff00%d|r",		[true] = "%s = |cff00ff00%d (num)|r"},
@@ -103,10 +121,40 @@ function Arglist(withKey, ...)
 		elseif type(arg)=="boolean" then									v = arg and "true" or "false"
 		else																							v = tostring(arg)
 		end
-		txt = sprintf("%s%s"..types[type(arg) or 'other'][withKey], txt, #txt and sep or "", withKey and k or v, v)
+		txt = sprintf("%s%s"..types[type(arg) or 'other'][withKey], txt, #txt>0 and sep or "", withKey and k or v, v)
 	end
 	return txt
 end
+
+--[[---------------------------------------------------------------------------
+	handle commands
+--]]---------------------------------------------------------------------------
+
+function RB.SlashCommandHandler(box, msg)
+	local cmd			= msg:match("^(%S*)")
+	local params	= msg:gsub("^"..cmd.." ", "")
+	cmd = cmd:lower() params = Split(params)
+	RB.Debug("SlashCommandHandler", cmd, unpack(params))
+	if cmd=="debug" then
+		RB.Debug("SlashCommandHandler", params)
+	end
+end
+_G.SLASH_ROMBAR1	= "/rb"
+_G.SLASH_ROMBAR2	= "/rombar"
+_G.SlashCmdList["ROMBAR"]	= RB.SlashCommandHandler
+
+function RB.SetFunc(func)
+	RB.SlashFunc = (func and type(func)=="function") and func or nil
+end
+
+function RB.SlashFuncHandler(box, msg)
+	if not RB.SlashFunc then return end
+	Debug("SlashFuncHandler", RB.SlashFunc)
+-- 	RB.SlashFunc()
+end
+
+_G.SLASH_ROMBARFUNC1	= "/rbf"
+_G.SlashCmdList["ROMBARFUNC"]	= RB.SlashFuncHandler
 
 --[[---------------------------------------------------------------------------
 	handle event
@@ -119,33 +167,37 @@ function RB.OnLoad(frame)
 	RB.frame:RegisterEvent("WARNING_MEMORY")
 	SaveVariablesPerCharacter(RB.addonProfile)
 	SaveVariables(RB.addonSettings)
+	-- personal settings
+	GC_SetBloodBarDistance(200)
+	GC_SetCameraSelectTarget(true)
+	GC_SetDisableDisplayNPCTalk(true)
+
 end
 
 function RB.OnUpdate(elapsedTime)
-	RB.coroutineTime	= (RB.coroutineTime or RB.coroutineInterval) + elapsedTime
-	if RB.coroutineTime>=RB.coroutineInterval and not TableIsEmpty(RB.events.COROUTINE) then
-		for k, func in pairs(RB.events.COROUTINE) do
-			if type(func)=="thread" then
-				coroutine.resume(func,RB.coroutineTime)
-				if coroutine.status(func)=="dead" then
-					RB.events.COROUTINE[k] = nil
-				end
-			end
-		end
-		RB.coroutineTime = 0
-	end
 	RB.updateTime	= (RB.updateTime or RB.updateEventInterval) + elapsedTime
-	if RB.updateTime>=RB.updateEventInterval and not TableIsEmpty(RB.events.ONUPDATE) then
-		for k, object in pairs(RB.events.ONUPDATE) do
-			if type(object)=="function" or (object.loaded and object.initialized) then
-				local func = type(object)=="function" and object or (object[event] or object.Update)
-				if func and type(func)=="function" then
-					local success, errMsg = pcall(func, "ONUPDATE", RB.updateTime)
-					assert(success, errMsg)
+	if RB.updateTime>=RB.updateEventInterval then
+		RB.OnEvent("ONUPDATE", RB.updateTime)
+		RB.updateTime = RB.updateTime - RB.updateEventInterval
+	end
+	RB.coroutineTime	= (RB.coroutineTime or RB.coroutineInterval) + elapsedTime
+	if RB.coroutineTime>=RB.coroutineInterval then
+		RB.events	= RB.events or {}
+		if not TableIsEmpty(RB.events.COROUTINE) then
+			for name,func in pairs(RB.events.COROUTINE) do
+				if type(func)=="thread" then
+					RB.Debug("call coroutine", name, func, coroutine.status(func))
+					if coroutine.status(func)=="dead" then
+						RB.events.COROUTINE[name] = nil
+					else
+						coroutine.resume(func)
+					end
+				elseif type(func)=="function" then
+					func()
 				end
 			end
 		end
-		RB.updateTime = 0
+		RB.coroutineTime = RB.coroutineTime - RB.coroutineInterval
 	end
 end
 
@@ -154,16 +206,17 @@ function RB.OnEvent(event, ...)
 	if event=="ONENTER" or event=="ONLEAVE" then
 		return RB.ShowTooltip(event, ...)
 	elseif event=="ONCLICK" then
-		return RB.ButtonClick(...)
+		RB.ButtonClick(...)
+-- 		return RB.OnEvent("CLICKACTION")
 	elseif RB[event] then
 		RB[event](event, ...)
 	end
 	if not TableIsEmpty(RB.events[event]) then
-		for _,object in pairs(RB.events[event]) do
+		for name,object in pairs(RB.events[event]) do
 			if type(object)=="function" or (type(object)=="table" and (object.loaded and object.initialized)) then
 				local func = type(object)=="function" and object or (object[event] or object.Update)
 				if func and type(func)=="function" then
-					RB.Debug("OnEvent", event, ...)
+					if event~="ONUPDATE" then RB.Debug("OnEvent", event, name, ...) end
 					local success, errMsg = pcall(func, event, ...)
 					assert(success, errMsg)
 				end
@@ -174,18 +227,33 @@ end
 
 function RB.RegisterEvent(name, event, func)
 	local evt
+	RB.events	= RB.events or {}
 	if type(event)=="table" then
 		for _,evt in pairs(event) do
 			RB.RegisterEvent(name, evt, func)
 		end
 	elseif type(event)=="string" and #event>0 then
-		local button = RB.GetButton(name)
+		local button 			= RB.GetButton(name)
+		local module			= RB.modules[name]
+		RB.events[event]	= RB.events[event] or {}
 		if TableIsEmpty(RB.events[event]) then
-			RB.events[event]				= {}
 			RB.frame:RegisterEvent(event)
 		end
-		RB.Debug("RegisterEvent", event, name, func or button)
-		RB.events[event][name] = func and func or button
+		RB.Debug("RegisterEvent", event, name, func or button or module)
+		RB.events[event][name] = func or button or module
+	end
+end
+
+function RB.RegisterCoroutine(name, func)
+	RB.Debug("RegisterCoroutine", name, func)
+	RB.events							= RB.events or {}
+	RB.events.COROUTINE 	= RB.events.COROUTINE or {}
+	if type(func)=="thread" then
+		RB.events.COROUTINE[name]	= func
+		coroutine.resume(func)
+	else
+		RB.events.COROUTINE[name]	= coroutine.create(func)
+		coroutine.resume(RB.events.COROUTINE[name])
 	end
 end
 
@@ -275,11 +343,11 @@ function RB.UpdateButtons()
 				button.frame:Show()
 				if button.side=="rtl" then
 					button.frame:ClearAllAnchors()
-					button.frame:SetAnchor("RIGHT", r and "LEFT" or "RIGHT", r or "RoMBarMain", -2, 0)
+					button.frame:SetAnchor("RIGHT", r and "LEFT" or "RIGHT", r or "RoMBarMain", r and -2 or -10, 0)
 					r = button.frame:GetName()
 				elseif button.side=="ltr" then
 					button.frame:ClearAllAnchors()
-					button.frame:SetAnchor('LEFT', l and "RIGHT" or "LEFT", l or "RoMBarMain", 2, 0)
+					button.frame:SetAnchor('LEFT', l and "RIGHT" or "LEFT", l or "RoMBarMain", l and 2 or 10, 0)
 					l = button.frame:GetName()
 				end
 			else
@@ -574,6 +642,7 @@ function RB.RegisterModule(name, object)
 	object.loaded							= true
 	object.initialized				= false
 	RB.modules[name]					= object
+	RB.RegisterEvent(name, object.events or {})
 	return object
 end
 
@@ -762,6 +831,15 @@ function RB.FormatCooldownTime(time)
 	else
 		return ""
 	end
+end
+
+function RB.CancelPopup(title)
+	local popup	= StaticPopup1
+	if title then
+		local test = StaticPopup_Visible(title)
+		if test then popup = getglobal(popup) end
+	end
+	if popup:IsVisible() then popup:Hide() end
 end
 
 function RB.RGB2HEX(arg1, arg2, arg3)

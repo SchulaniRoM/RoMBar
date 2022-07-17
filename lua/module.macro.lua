@@ -9,6 +9,7 @@ local ME = {
 		"HasQuest",
 		"IsCasting",
 		"RB_Kitty",
+		"NextTarget",
 		"TargetNearestEnemy",
 		"TargetUnitByName",
 		"FocusUnitByName",
@@ -16,8 +17,10 @@ local ME = {
 		"GetNpcID",
 		"GetPosition",
 		"MacroCD",
+		"UseItem",
 		"SH_loot",
 		"SH_unbox",
+		"BK_unbox",
 		"TQ_Logar",
 		"GetNextFreeBagSlot",
 	},
@@ -43,9 +46,6 @@ function ME.Init()
 			end
 		end
 	end
-	-- short for ingame macro functions
-	_G.SCL			= _G.SlashCmdList
-	_G.SLASH_F1 = "/f"
 end
 
 function ME.FindString(str, root)
@@ -148,17 +148,25 @@ running kitty-combo after looting and target changes to next enemy
 --]]----------------------------------------------------------------------------------------------
 
 function ME.RB_Kitty(kittyToken)
-	if kittyToken=="auto" then
+	if IsCtrlKeyDown() then return end
+	if kittyToken=="pClass" then
 		kittyToken = UnitClassToken("player")
 	end
+	if UnitName("target") and not UnitIsDeadOrGhost("target") and UnitCanAttack("player", "target") then
+		Kitty.attack(kittyToken or nil)
+	end
+end
+
+function ME.NextTarget(pattern)
 	if UnitIsDeadOrGhost("target") then
 		CastSpellByName(TEXT("Sys540000_name"))
 		TargetUnit()
-	elseif not UnitName(t) then
-		TargetNearestEnemy()
-	end
-	if UnitName(t) and UnitCanAttack("player", "target") then
-		Kitty.attack(kittyToken or nil)
+	elseif not UnitName("target") then
+		local tmp = GC_GetCameraSelectTarget()
+		GC_SetCameraSelectTarget(true)
+		if pattern then TargetUnitByName(pattern)
+		else TargetNearestEnemy() end
+		GC_SetCameraSelectTarget(tmp)
 	end
 end
 
@@ -383,6 +391,52 @@ end
 
 --[[----------------------------------------------------------------------------------------------
 
+use an item if it was found in bag by id or name
+
+* syntax:
+		UseItem(ID or Name)
+
+* returns:
+		boolean success
+
+--]]----------------------------------------------------------------------------------------------
+
+function ME.UseItem(IDorName)
+	local cnt = type(IDorName)=="number" and GetBagItemCount(IDorName) or CountInBagByName(IDorName)
+	if cnt>0 then
+		UseItemByName(type(IDorName)=="number" and TEXT("Sys"..IDorName.."_name") or IDorName)
+		return true
+	end
+	return false
+end
+
+--[[----------------------------------------------------------------------------------------------
+
+find free bag slot between start and finish
+
+* syntax:
+		GetNextFreeBagSlot([start], [finish])
+
+* returns:
+		number or false
+
+--]]----------------------------------------------------------------------------------------------
+
+function ME.GetNextFreeBagSlot(start, finish)
+	local i, bagID, item
+	local start		= start or 1
+	local finish	= finish or 180
+	for i = start,finish do
+		bagID,_,item,_,_,_ = GetBagItemInfo(i)
+		if not item or item=="" then
+			return bagID
+		end
+	end
+	return false
+end
+
+--[[----------------------------------------------------------------------------------------------
+
 loot macro for sturmhöhe - targets next chest and click it to loot
 
 * syntax:
@@ -418,39 +472,18 @@ end
 
 --[[----------------------------------------------------------------------------------------------
 
-unbox macro for sturmhöhe - unpacks next chest (I to XX) if at least 3 slots available in bag
-
-* syntax:
-		SH_unbox()
-
-* returns:
-		true/false
-
-* usage:
-	/run SH_unbox()
-	/wait .1
-	/run SH_unbox()
-	/wait .1
-	/run SH_unbox()
-	/wait .1
-	/run SH_unbox()
-	...
+unbox macro differen chests and pakets (SH, BK) if at least 5 slots available in bag
 
 --]]----------------------------------------------------------------------------------------------
 
 function ME.SH_unbox()
 	ITEM_QUEUE_FRAME_UPSATETIME = 0
 	ITEM_QUEUE_FRAME_INSERTITEM = 0
+	local i
 	local _,s,_ = GetBagCount()
-	if s>3 then
-		for i=203256,208371 do
-			if i==203266 then i=208361 end
-			local b	= GetBagItemCount(i)
-			if b>0 then
-				UseItemByName(TEXT("Sys"..i.."_name"))
-				return true
-			end
-		end
+	if s>5 then
+		for i=203256,203265 do if UseItem(i) then return true end end
+		for i=208361,208370 do if UseItem(i) then return true end end
 		RB.Print("nothing to unpack")
 	else
 		RB.Print("need more space")
@@ -458,40 +491,16 @@ function ME.SH_unbox()
 	return false
 end
 
--- function ME.SH_unbox()
--- 	ITEM_QUEUE_FRAME_UPSATETIME = 0
--- 	ITEM_QUEUE_FRAME_INSERTITEM = 0
--- 	_G.NEXT_CHEST = _G.NEXT_CHEST or 203256
--- 	function run()
--- 		local _,s,_ = GetBagCount()
--- 		local b			= GetBagItemCount(_G.NEXT_CHEST)
--- 		if s>3 and b>0 then
--- 			UseItemByName(TEXT("Sys".._G.NEXT_CHEST.."_name"))
--- 			return true
--- 		else
--- 			return false
--- 		end
--- 	end
--- 	while not run() do
--- 		_G.NEXT_CHEST = _G.NEXT_CHEST + 1
--- 		if _G.NEXT_CHEST==203266 then
--- 			_G.NEXT_CHEST = 208361
--- 		end
--- 		if _G.NEXT_CHEST==208371 then
--- 			_G.NEXT_CHEST = 203256
--- 			break
--- 		end
--- 	end
--- end
-
-function ME.GetNextFreeBagSlot(start, finish)
-	start		= start or 1
-	finish	= finish or 180
-	for i = start,finish do
-		local bagID,_,item,_,_,_ = GetBagItemInfo(i)
-		if not item or item=="" then
-			return bagID
-		end
+function ME.BK_unbox()
+	ITEM_QUEUE_FRAME_UPSATETIME = 0
+	ITEM_QUEUE_FRAME_INSERTITEM = 0
+	local i
+	local _,s,_ = GetBagCount()
+	if s>5 then
+		for i=206770,206775 do if UseItem(i) then return true end end
+		RB.Print("nothing to unpack")
+	else
+		RB.Print("need more space")
 	end
 	return false
 end

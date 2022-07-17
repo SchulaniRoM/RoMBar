@@ -8,6 +8,7 @@ local ME = {
 		"PARTY_INVITE_REQUEST", "RIDE_INVITE_REQUEST", "DUEL_REQUESTED",
 		"TRADE_REQUEST", "TRADE_ACCEPT_UPDATE",
 		"CHAT_MSG_GUILD", "CHAT_MSG_PARTY", "CHAT_MSG_WISPER",
+		"HOUSESFRAME_SHOW",
 	},
 	actions		= {
  		LBUTTON	= {func = function() ToggleUIFrame(GuildFrame) end},
@@ -37,8 +38,8 @@ function ME.Update(event, ...)
 	if event=="RESET_FRIEND" or event=="UPDATE_GUILD_MEMBER" or event=="LOADING_END" then
 		ME.socialList	= ME.GetSocialList(true)
 		RB.UpdateButtonText(ME.name,
-			sprintf("%s: %s%s%s", RB.Lang(ME.name, "GUILD"), RB.Dec(ME.socialCount.gNum), RB.Separator(), RB.Dec(ME.socialCount.gMax)),
-			IsInGuild() and sprintf("%s: %s%s%s", RB.Lang(ME.name, "FRIEND"), RB.Dec(ME.socialCount.fNum), RB.Separator(), RB.Dec(ME.socialCount.fMax)) or nil
+			IsInGuild() and sprintf("%s: %s%s%s", RB.Lang(ME.name, "GUILD"), RB.Dec(ME.socialCount.gNum), RB.Separator(), RB.Dec(ME.socialCount.gMax)) or nil,
+			sprintf("%s: %s%s%s", RB.Lang(ME.name, "FRIEND"), RB.Dec(ME.socialCount.fNum), RB.Separator(), RB.Dec(ME.socialCount.fMax))
 		)
 		ME.actions.RBUTTON.text			= RB.Lang(ME.name, "WISPER").."/"..RB.Lang(ME.name, "INVITE")
 		ME.actions.RBUTTON.disabled	= (ME.socialCount.fNum==0 and ME.socialCount.gNum==0) and true or false
@@ -188,6 +189,23 @@ function ME.SetFriendList(list)
 	ME.importState = IMPORTSTATE_DONE
 end
 
+function ME.HOUSESFRAME_SHOW()
+	if not Houses_IsOwner() or RB.settings.autoHouseFriend==false then return end
+	local _, error	= loadfile(sprintf("%s/personal.lua", RB.addonPath))
+	if not error then
+		local data	= dofile(sprintf("%s/personal.lua", RB.addonPath))
+		local merge	= data.myTwinks
+		merge[UnitName("player")] = nil
+		for i=1,Houses_GetFriendCount() do
+			local name 	= Houses_GetFriendInfo(i)
+			merge[name]	= nil
+		end
+		for name in pairs(merge) do
+			Houses_AddFriend(name)
+		end
+	end
+end
+
 function ChatBeep(event)
 	if event=='CHAT_MSG_GUILD' and RB.settings.beepGuild==true then
 		PlaySoundByPath(sprintf("%s/sounds/%s", RB.addonPath, "guild.mp3"))
@@ -221,22 +239,22 @@ function HandleRequest(event, ...)
 		if (RB.settings["acceptPartyFriend"] and IsMyFriend(name)) or
 			(RB.settings["acceptPartyGuild"] and IsInMyGuild(name)) then
 			AcceptGroup()
-			if StaticPopup1:IsVisible() then StaticPopup1:Hide() end
+			RB.CancelPopup("PARTY_INVITE_REQUEST")
 		end
 	end
 	if event=="RIDE_INVITE_REQUEST" then
 		if	(RB.settings["acceptRideFriend"] and IsMyFriend(name)) or
 				(RB.settings["acceptRideGuild"] and IsInMyGuild(name)) then
 			AcceptRideMount()
-			if StaticPopup1:IsVisible() then StaticPopup1:Hide() end
+			RB.CancelPopup("RIDE_INVITE_REQUEST")
 		end
 	end
 	if event=="TRADE_REQUEST" then
 		if	(RB.settings["acceptTradeFriend"] and IsMyFriend(name)) or
-				(RB.settings["acceptTradeGuild"] and IsInMyGuild(name)) then
+				(RB.settings["acceptTradeGuild"] and IsInMyGuild(name)) or
+				(RB.settings["acceptTradeGroup"] and (InPartyByName(name) or InRaidByName(name))) then
 			RB.RegisterEvent(ME.name, "ONUPDATE", HandleRequest_OnUpdate)
-			local popup = StaticPopup_Visible("TRADE")
-			if popup then getglobal(popup):Hide() end
+			RB.CancelPopup("TRADE")
 		end
 	end
 	if event=="TRADE_ACCEPT_UPDATE" then
@@ -252,7 +270,7 @@ function HandleRequest(event, ...)
 	end
 	if event=="DUEL_REQUESTED" and RB.settings["declineDuel"] then
 		CancelDuel()
-		if StaticPopup1:IsVisible() then StaticPopup1:Hide() end
+		RB.CancelPopup("DUEL_REQUESTED")
 	end
 end
 

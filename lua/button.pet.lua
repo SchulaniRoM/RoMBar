@@ -26,14 +26,14 @@ local function GetPetCount()
 end
 
 function ME.Update(event, ...)
-	local oldIcon = ME.icon
+	local oldIcon, petSlot = ME.icon, GetActivePetSlot()
 	if GetPetCount()==0 then
 		ME.icon											= "Interface/Icons/Icon-Default"
 		ME.actions.LBUTTON.text			= RB.Lang(ME.name, "NOPET")
 		ME.actions.RBUTTON.disabled = true
 		ME.actions.MBUTTON.disabled = true
-	elseif GetActivePetSlot() then
-		ME.icon											= "Interface/Icons/shop_goods/pet_egg_09"
+	elseif petSlot then
+		ME.icon											= GetEggIcon(petSlot)
 		ME.actions.LBUTTON.text			= RB.Lang(ME.name, "RECALL")
 		ME.actions.RBUTTON.disabled = false
 		ME.actions.MBUTTON.disabled = true
@@ -45,7 +45,7 @@ function ME.Update(event, ...)
 	end
 	if oldIcon~=ME.icon then
 		RB.UpdateButtonIcon(ME.name)
--- 		RB.UpdateButtonText(nil, nil, GetActivePetSlot())
+		RB.UpdateButtonText(nil, nil, petSlot)
 	end
 end
 
@@ -58,7 +58,7 @@ function ME.Tooltip(tooltip)
 				local prop	= RB.Lang(ME.name, "PROP"..GetPetItemProperty(i))
 				local h			= GetPetItemAbility(i, "HUNGER")
 				local l			= GetPetItemAbility(i, "LOYAL")
-				tooltip:AddDoubleLine(
+				RB.AddToTooltip(
 					sprintf("%d: %s %d (%s)", i, name, level, prop),
 					{
 				   RB.Lang(ME.name, "HUNGER_SHORT", {RB.ColorByPercent(h, 100)}),
@@ -68,36 +68,43 @@ function ME.Tooltip(tooltip)
 			end
 		end
 	else
-		tooltip:AddLine(RB.Lang(ME.name, "NOPET"))
+		RB.AddToTooltip(RB.Lang(ME.name, "NOPET"))
 	end
 end
 
-local function FeedPet(petSlot)
-	local food = {
-		[204510]	= { loyal = 1 },
-		[204925]	= { hunger = 10 },
-	}
-	local petSlot	= RB.settings.lastPetSlot or 0
-	if not petSlot or petSlot<1 or petSlot>6 then
-		for i=6,1,-1 do
-			if IsPetStarUse(i)~=nil then
-				petSlot = i
+local function FeedPet_coroutine()
+end
+
+local function PetFeeding(petSlot)
+	if GetActivePetSlot()==petSlot or not HasPetItem(petSlot) then return end
+
+	local l,h	= GetPetItemAbility(petSlot, "LOYAL"), GetPetItemAbility(petSlot, "HUNGER")
+	local name = GetPetItemName(petSlot)
+	if h<=90 then
+		for i=1,180 do
+			local id, _, item, count, locked = GetBagItemInfo(i)
+			if not locked and item==TEXT("Sys204925_name") then
+				PickupBagItem(id)
+				ClickPetFeedItem()
+				while h<=90 and count>0 do
+					coroutine.yield()
+-- 					FeedPet(petSlot)
+					h = h + 10
+					count = count - 1
+					RB.Print(sprintf("Feeding %s to %s...", item, name))
+				end
+				ClearPetFeedItem()
+				if CursorHasItem() then CancelPendingItem() end
 			end
+			if h>90 then break end
 		end
+	else
+		RB.Print("no need to feed")
 	end
-
-	RB.settings.lastPetSlot	= petSlot
-	local h	= GetPetItemAbility(petSlot, "HUNGER")
-	local l	= GetPetItemAbility(petSlot, "LOYAL")
-
--- 	/run slot,food,feed=1,"Nahrhafter Käse",10
--- /run name=GetPetItemName(slot) if IsPetSummoned(slot) then DEFAULT_CHAT_FRAME:AddMessage("Ab ins Körbchen "..name.."...") ReturnPet(slot)
--- else h=GetPetItemAbility(slot,"HUNGER") if h<80 then for i=1,180 do id,_,f=GetBagItemInfo(i) if f==food then break else id=0 end end if id~=0 then PickupBagItem(id) ClickPetFeedItem() for i=h,100,feed do FeedPet(slot) end end end DEFAULT_CHAT_FRAME:AddMessage("Dein Auftritt "..name.."...") SummonPet(slot) end
-
 end
 
 local function CallPet(petSlot)
-	petSlot	= petSlot or RB.settings.lastPetSlot or 1
+	petSlot	= (petSlot or RB.settings.lastPetSlot) or 1
 	RB.settings.lastPetSlot	= petSlot
 	local name = GetPetItemName(petSlot)
 	if name then
@@ -123,7 +130,7 @@ function ME.Click(key, tooltip)
 		ToggleUIFrame(PetFrame)
 	elseif key=="MBUTTON" then
 		tooltip:Hide()
-		RB.RegisterEvent(ME.name, "COROUTINE", coroutine.create(FeedPet))
+		RB.RegisterCoroutine(ME.name, coroutine.create(PetFeeding))
 	end
 end
 

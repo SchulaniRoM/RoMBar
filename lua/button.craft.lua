@@ -3,7 +3,7 @@
 local RB = _G.RoMBar
 local ME = {
 	icon			= {"Interface/gameicon/gameicon", 0.375, 0.5, 0.375, 0.5},
-	events		= {"CRAFT_UNLOCK", "PLAYER_ABILITY_CHANGED", "PLAYER_ABILITYPOINT_CHANGED", "PLAYER_LIFESKILL_CHANGED"},
+	events		= {"CRAFT_UNLOCK", "PLAYER_ABILITYPOINT_CHANGED", "PLAYER_LIFESKILL_CHANGED"},		-- , "PLAYER_ABILITY_CHANGED"
 }
 
 function ME.Update(this)
