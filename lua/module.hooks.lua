@@ -5,9 +5,7 @@ local ME = {}
 
 function Hook_UltimateMailMod()
 	local _, error	= loadfile(sprintf("%s/personal.lua", RB.addonPath))
-	if error then
-		RB.Error(error)
-	else
+	if not error then
 		local data	= dofile(sprintf("%s/personal.lua", RB.addonPath))
 		UMM_OwnCharacters = UMM_OwnCharacters or {}
 		local merge	= data.myTwinks
