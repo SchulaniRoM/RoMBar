@@ -194,11 +194,11 @@ function ME.HOUSESFRAME_SHOW()
 	local _, error	= loadfile(sprintf("%s/personal.lua", RB.addonPath))
 	if not error then
 		local data	= dofile(sprintf("%s/personal.lua", RB.addonPath))
-		local merge	= data.myTwinks
+		local merge	= data.myTwinks or {}
 		merge[UnitName("player")] = nil
 		for i=1,Houses_GetFriendCount() do
 			local name 	= Houses_GetFriendInfo(i)
-			merge[name]	= nil
+			if merge[name] then merge[name] = nil end
 		end
 		for name in pairs(merge) do
 			Houses_AddFriend(name)

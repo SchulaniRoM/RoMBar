@@ -82,7 +82,6 @@ end
 function ME.DropDownHandler()
 	local DD = RB.modules.dropdown
 	if (UIDROPDOWNMENU_MENU_LEVEL or 1)==1 then
-		DD.AddTitle(RB.Lang(ME.name, "TELEPORT"))
 		for _,cID in pairs(teleport.casts) do
 			local cast		= TEXT("Sys"..cID.."_name")
 			local page,id	= RB.GetSkillBookIndexes(cast)
@@ -90,7 +89,7 @@ function ME.DropDownHandler()
 				local name, _, icon, _, rank, type, upgradeCost, isSkillable, isAvailable = GetSkillDetail(page,id)
 				local cooldown, remaining = GetSkillCooldown(page, id)
 				local text
-				if cID==540001 and RB.settings.recallLocation then
+				if cID==540001 then
 					text 		= remaining>0 and sprintf("%s%s (%s)", cast, ": "..RB.settings.recallLocation or "", os.date("%Mm%Ss", remaining)) or cast
 				else
 					text 		= remaining>0 and sprintf("%s (%s)", cast, os.date("%Mm%Ss", remaining)) or cast

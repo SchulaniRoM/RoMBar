@@ -10,6 +10,27 @@ local ME = {
 	},
 }
 
+local function RomToDec(rom)
+	local trans = {I=1,II=2,III=3,IV=4,V=5,VI=6,VII=7,VIII=8,IX=9,XX=10}
+	return trans[rom] or rom
+end
+
+local function GetPeakLevel()
+	local b,peak,name,id = 0,nil
+	repeat b = b + 1
+		name,_,_,id = UnitBuff("player", b)
+		if id and id>626025 and id<=626045 then
+			peak = name
+			break
+		end
+	until not id
+	if peak then
+		local level 	= RomToDec(peak:match("([IXV]*)$"))
+		return peak, level
+	end
+	return nil, 0
+end
+
 function ME.Update(event, ...)
 	local mClass, sClass	= UnitClass("player")
 	local mToken, sToken	= UnitClassToken("player")
@@ -20,12 +41,13 @@ function ME.Update(event, ...)
 	else
 		RB.UnregisterEvent(ME.name, "ONUPDATE")
 	end
-	local cXP, mXP	= GetPlayerExp(), GetPlayerMaxExp()
-	local cTP, mTP	= GetTpExp(), GetTotalTpExp()
-	local dXP, dTP 	= GetPlayerExpDebt()
-	local percent		= 100/mXP*cXP
+	local cXP, mXP		= GetPlayerExp(), GetPlayerMaxExp()
+	local cTP, mTP		= GetTpExp(), GetTotalTpExp()
+	local dXP, dTP 		= GetPlayerExpDebt()
+	local percent			= 100/mXP*cXP
+	local peak				= GetPeakLevel()
 	RB.UpdateButtonText(ME.name,
-		{RB.ColorByClass(mToken, mClass.." "..mLevel), sLevel>0 and RB.ColorByClass(sToken, sClass.." "..sLevel) or nil},
+		{RB.ColorByClass(mToken, mClass.." "..mLevel), sLevel>0 and RB.ColorByClass(sToken, sClass.." "..sLevel) or nil, (peak and #peak>0) and RB.ColorByName("PINK", peak:match("([IXV]*)$")) or nil},
 		{dXP<0 and RB.ColorPosNeg(dXP) or nil, RB.ColorByPercent(cXP, mXP), RB.Dec(mXP), RB.ColorByPercent(cXP, mXP, false, sprintf("%d%%", percent))}
 	)
 	local oldIcon		= ME.icon
@@ -53,18 +75,12 @@ function ME.Tooltip(tooltip)
 
 	-- peak level
 	local cXP, mXP, b							= GetPlayerExp(), GetPlayerMaxExp(), 0
-	local mLevel, sLevel, pLevel	= UnitLevel("player")
+	local mLevel, sLevel					= UnitLevel("player")
+	local pLevel									= GetPeakLevel()
 	local mTPc, mTPm							= GetTpExp(), GetTotalTpExp()
-	repeat b = b + 1
-		name,_,_,id = UnitBuff("player", b)
-		if id and id>626025 and id<=626045 then
-			pLevel = name
-			break
-		end
-	until not id
 	if pLevel and mLevel==100 and sLevel==100 then
 		tooltip:AddDoubleLine(
-			RB.ColorByRarity(6, pLevel),
+			RB.ColorByName("PINK", pLevel),
 			sprintf("%s%s%s", RB.ColorByPercent(cXP, mXP), RB.Separator(), RB.Dec(mXP))
 		)
 	end

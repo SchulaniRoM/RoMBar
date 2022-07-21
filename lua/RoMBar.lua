@@ -2,7 +2,7 @@
 local RB = {
 	addonName							= "Extended RoMBar",
 	addonAuthor						= "Schulani & Celesteria@Kerub",
-	addonVersion					= 2.16,
+	addonVersion					= 2.19,
 	addonPath							= "Interface/AddOns/RoMBar",
 	addonSettings					= "RoMBarSettings",
 	addonProfile					= "RoMBarProfile",
@@ -77,7 +77,7 @@ local function Trim(str)
 	return str
 end
 
-function Split(str, delim, limit)
+local function Split(str, delim, limit)
 	str 	=str and tostring(str) or ""
 	delim	= delim and tostring(delim) or ",[%s%c]*"
 	limit = tonumber(limit) and tonumber(limit) or 0
@@ -102,22 +102,23 @@ local function VarFunc(tbl, var, default, ...)
 	return default
 end
 
-function Arglist(withKey, ...)
-	local txt, sep = '', withKey and " - " or " "
+function RB.Arglist(withKey, ...)
+	local txt, sep = '', withKey and " | " or " "
 	local args = (select("#",...)==1 and type(select(1,...))=="table") and select(1,...) or {...}
 	local types = {
-		['number']		= {[false] = "|cff00ff00%d|r",		[true] = "%s = |cff00ff00%d (num)|r"},
-		['function']	= {[false] = "|cffff0000%s()|r",	[true] = "%s = |cffff0000%s() (func)|r"},
-		['table']			= {[false] = "|cff00ffff%s|r",		[true] = "%s = |cff00ffff%s (tbl)|r"},
-		['frame']			= {[false] = "|cffff00ff%s|r",		[true] = "%s = |cffff00ff%s (frm)|r"},
-		['string']		= {[false] = "|cffffff00'%s'|r",	[true] = "%s = |cffffff00'%s' (str)|r"},
-		['boolean']		= {[false] = "|cff0000ff%s|r",		[true] = "%s = |cff0000ff%s|r"},
-		['other']			= {[false] = "|cffffffff%s|r",		[true] = "%s = |cffffffff%s|r"},
+		['number']		= {[false] = "|cff1ae51a%d|r",		[true] = "%s=|cff1ae51a%d|r"},
+		['function']	= {[false] = "|cffe51a1a%s()|r",	[true] = "%s=|cffe51a1a%s()|r"},
+		['table']			= {[false] = "|cff1ae5e5%s|r",		[true] = "%s=|cff1ae5e5%s|r"},
+		['string']		= {[false] = "|cffe5e51a'%s'|r",	[true] = "%s=|cffe5e51a'%s'|r"},
+		['boolean']		= {[false] = "|cff1a1ae5%s|r",		[true] = "%s=|cff1a1ae5%s|r"},
+		['other']			= {[false] = "|cffe5e5e5%s|r",		[true] = "%s=|cffe5e5e5%s|r"},
 	}
 	for k,arg in pairs(args) do
-		if type(arg)=="number" then												v = tonumber(arg)
-		elseif type(arg)=="function" then									v = k
-		elseif type(arg)=="table" and arg.GetParent then	v = arg:GetName()
+		if arg==nil then																	v = "nil"
+		elseif type(arg)=="number" then										v = tonumber(arg)
+		elseif type(arg)=="function" then									v = type(k)=="number" and tostring(arg):sub(10) or k
+		elseif type(arg)=="table" and arg.GetParent then	v = arg:GetName() or "frame"
+		elseif type(arg)=="table" then										v = tostring(arg):sub(8)
 		elseif type(arg)=="boolean" then									v = arg and "true" or "false"
 		else																							v = tostring(arg)
 		end
@@ -125,6 +126,7 @@ function Arglist(withKey, ...)
 	end
 	return txt
 end
+_G.Arglist = RB.Arglist
 
 --[[---------------------------------------------------------------------------
 	handle commands
@@ -293,11 +295,12 @@ function RB.VARIABLES_LOADED()
 		end
 	end
 
-	local save = _G[RB.addonProfile] or {}
-	for k,v in pairs(RB.defaults) do
-		if save[k]==nil then RB.settings[k] = v else RB.settings[k] = save[k] end
+	RB.global 	= _G[RB.addonSettings] or {}
+	RB.settings	= RB.defaults
+	local save	= _G[RB.addonProfile] or {}
+	for k,v in pairs(save) do
+		if RB.settings[k]~=nil then RB.settings[k] = v end
 	end
-	RB.global = _G[RB.addonSettings] or {}
 
 	ITEM_QUEUE_FRAME_UPSATETIME = 0
 	ITEM_QUEUE_FRAME_INSERTITEM = 0
@@ -790,7 +793,7 @@ end
 
 function RB.Debug(...)
 	if not RB.settings.debug==true then return end
-	local txt, chatFrame, k = Arglist(false,...), DEFAULT_CHAT_FRAME
+	local txt, chatFrame, k = RB.Arglist(select(1,...)==true,...), DEFAULT_CHAT_FRAME
 	for k=1,10 do if GetChatWindowInfo(k):lower()=="debug" then chatFrame = getglobal("ChatFrame"..k) break end end
 	chatFrame:AddMessage(txt, 1, 1, 1)
 end
@@ -837,7 +840,7 @@ function RB.CancelPopup(title)
 	local popup	= StaticPopup1
 	if title then
 		local test = StaticPopup_Visible(title)
-		if test then popup = getglobal(popup) end
+		if test then popup = getglobal(test) end
 	end
 	if popup:IsVisible() then popup:Hide() end
 end

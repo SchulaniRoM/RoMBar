@@ -2,12 +2,8 @@
 
 local RB = _G.RoMBar
 local ME = {
-	icon		= "Interface/buttons/characterabilitypoint-normal",
+	icon		= "Interface/Icons/skill_war1-2",	--"Interface/buttons/characterabilitypoint-normal",
 }
-
-function ME.Init()
-	return true
-end
 
 function ME.Click(key, tooltip)
 	if key=="LBUTTON" then

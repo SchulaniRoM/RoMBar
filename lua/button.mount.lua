@@ -3,7 +3,7 @@
 local RB = _G.RoMBar
 local ME = {
 	icon			= RB.addonPath.."/textures/SaddleGrey",
-	events		= {"LOADING_END", "ZONE_CHANGED", "UNIT_BUFF_CHANGED", "PLAYER_BAG_CHANGED", "EXCHANGECLASS_CLOSED", "PLAYER_ALIVE"},	-- ENTER_MOUNT?
+	events		= {"LOADING_END", "ZONE_CHANGED", "PLAYER_DEAD", "CASTING_STOP", "BAG_ITEM_UPDATE", "UNIT_BUFF_CHANGED"},
 	mounts		= {},
 	numMounts	= 0,
 }
@@ -118,7 +118,6 @@ end
 local function Dismount()
 	local mounted, buffNum, icon = IsMounted()
 	if mounted then CancelPlayerBuff(buffNum) end
-	UpdateIcon()
 end
 
 local function UseTicket()
@@ -149,13 +148,11 @@ local function Mount(mount)
 end
 
 function ME.Update(event, arg1, ...)
-	if event=="UNIT_BUFF_CHANGED" and arg1~="player" then return end
-	ScanBags()
-	if event=="PLAYER_ALIVE" or event=="EXCHANGECLASS_CLOSED" or event=="LOADING_END" then
-		if IsMountableZone() then
-			Mount(RB.settings.lastMount or GetRandomMount())
-		end
+	if event=="UNIT_BUFF_CHANGED" then
+		if arg1~=UnitName("player") then return end
 	end
+	ScanBags()
+	UpdateIcon()
 end
 
 function ME.Tooltip(tooltip)

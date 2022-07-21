@@ -11,37 +11,21 @@ local ME = {
 	titles		= nil,
 }
 
-function ReadTitles()
-	local tTotal, tmp = GetTitleCount() or 800, {}
-	if tTotal<=0 then return nil end
-	RB.Debug("ReadTitles", tTotal)
-	for i=0, tTotal do
-		name,tid	= GetTitleInfoByIndex(i)		-- name, titleID, geted, icon, classify1, classify2, note, brief, rare = GetTitleInfoByIndex( index )
-		if tid and tid>0 then
-			tmp[tid]	= {idx = i, title = name}
-		end
-	end
-	return tmp
-end
-
 function ME.GetTitle(id)
-	if not ME.titles then ME.titles = ReadTitles() end
 	local title, icon, text = RB.Lang(ME.name, "NOTITLE"), "interface/icons/quest_paperstack03", ""
-	if ME.titles and ME.titles[id] then
-		local name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id].idx)
-		if geted then
-			if name=="???" then
-				AchievementTitleFrame:Show()
-				AchievementTitleFrame:Hide()
-				ME.titles = ReadTitles()
-				name,_,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(ME.titles[id].idx)
-			end
-			title = name
-			icon	= ico
-			text	= note
-		end
-	elseif id==DF_CA_HT_CUSPMIZE then
+	if id==DF_CA_HT_CUSPMIZE then
 		title = GetCusomizeTitle()	-- misspelling is correct
+	else
+		local tTotal, tmp = GetTitleCount() or 800, {}
+		for i=0, tTotal do
+			local name,tid,geted,ico,classify1,classify2,note,brief,rare = GetTitleInfoByIndex(i) -- name, titleID, geted, icon, classify1, classify2, note, brief, rare = GetTitleInfoByIndex( index )
+			if tid and tid==id and geted then
+				title = name
+				icon	= ico
+				text	= note
+				break
+			end
+		end
 	end
 	return title, icon, text
 end
@@ -133,16 +117,13 @@ end
 function ME.DropDownHandler()
 	local DD = RB.modules.dropdown
 	if (UIDROPDOWNMENU_MENU_LEVEL or 1)==1 then
-		DD.AddTitle(RB.Lang(ME.name, "TITLE"))
 		DD.AddCheckBox(RB.Lang(ME.name, "NOTITLE"), not GetCurrentTitle(), 0, ChangeTitle)
 		RB.settings.titleList	= RB.settings.titleList or {}
 		if not ME.titles then ME.titles = ReadTitles() end
 		if not ME.titles then return end
 		for id,_ in pairs(RB.settings.titleList) do
-			if ME.titles and ME.titles[id] then
-				local _,_,geted = GetTitleInfoByIndex(ME.titles[id].idx)		-- name, titleID, geted, icon, classify1, classify2, note, brief, rare = GetTitleInfoByIndex( index )
-				if geted then DD.AddCheckBox(ME.GetTitle(id), GetCurrentTitle()==id, id, ChangeTitle) end
-			end
+			local title, icon, info = ME.GetTitle(id)
+			DD.AddCheckBox(title, GetCurrentTitle()==id, id, ChangeTitle, info)
 		end
 	end
 end

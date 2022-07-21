@@ -15,7 +15,7 @@ local defaultsPerChar = {
 	mail 							= 0,			-- button.mail
 	autoRepair 				= true,		-- button.equip
 	autoRepairSlots		= {				-- button.equip
-		enabled						= true,
+		enabled						= false,
 		[15]							= true,
 		[16]							= true,
 	},
@@ -33,7 +33,7 @@ local defaultsPerChar = {
 	acceptTradeParty	= true,		-- button.social
 	autoTrade					= true,		-- button.social
 	declineDuel 			= true,		-- button.social
-	friendSync				= true,		-- button.social
+	friendSync				= false,	-- button.social
 	autoHouseFriend		= true,		-- button.social
 	titleList					= {},			-- button.player
 	lastMount					= "",			-- button.mount
