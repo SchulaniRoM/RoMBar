@@ -119,8 +119,6 @@ function ME.DropDownHandler()
 	if (UIDROPDOWNMENU_MENU_LEVEL or 1)==1 then
 		DD.AddCheckBox(RB.Lang(ME.name, "NOTITLE"), not GetCurrentTitle(), 0, ChangeTitle)
 		RB.settings.titleList	= RB.settings.titleList or {}
-		if not ME.titles then ME.titles = ReadTitles() end
-		if not ME.titles then return end
 		for id,_ in pairs(RB.settings.titleList) do
 			local title, icon, info = ME.GetTitle(id)
 			DD.AddCheckBox(title, GetCurrentTitle()==id, id, ChangeTitle, info)

@@ -150,9 +150,11 @@ end
 function ME.Update(event, arg1, ...)
 	if event=="UNIT_BUFF_CHANGED" then
 		if arg1~=UnitName("player") then return end
+		UpdateIcon()
+	else
+		ScanBags()
+		UpdateIcon()
 	end
-	ScanBags()
-	UpdateIcon()
 end
 
 function ME.Tooltip(tooltip)
