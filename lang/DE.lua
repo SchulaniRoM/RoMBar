@@ -37,7 +37,7 @@ local lang = {
 		AUTOAMMO						= "Gleichen Munitionstyp nachladen",
 		AUTOAMULET					= "Gefüllte Amulette austauschen",
 		FRIENDSYNC					= "Freundesliste syncronisieren",
-		HOUSEFRIEND					= "Twinks automatisch als Hausefreund hinzufügen",
+		HOUSEFRIEND					= "Twinks automatisch als Hausfreund hinzufügen",
 		SKIPDIALOGS					= "Popups und NPC-Dialoge überspringen",
 		BOSSBELL						= "Weltboss-Sichtungen in der Gilde melden",
 	},
@@ -53,6 +53,8 @@ local lang = {
 		TP_SHORT						= "TP",
 		DEPT								= "Schulden",
 		BONUS								= "Hausbonus",
+		SUITSKILLCLASS			= "SetSkills <<1>>",
+		SUITSKILLCOMMON			= "SetSkills Allgemein",
 	},
 	
 	TITLEQUEST = {
@@ -98,7 +100,8 @@ local lang = {
 	EQUIP = {
 		TITLE								= "Haltbarkeit",
 		LCLICK							= TEXT("BACKPACK_EQUIP"),
-		RCLICK							= TEXT("BACKPACK_EQUIP").." wechseln",
+		MCLICK							= TEXT("BACKPACK_EQUIP").." wechseln",
+		RCLICK							= TEXT("BACKPACK_EQUIP").." reaparieren",
 		SLOT0								= "Kopf",
 		SLOT1								= "Hände",
 		SLOT2								= "Füße",

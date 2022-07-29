@@ -2,13 +2,13 @@
 
 local RB = _G.RoMBar
 local ME = {
-	icon			= {"Interface/gameicon/gameicon", 0.25, 0.375, 0.5, 0.625},
-	events		= {"CLICKACTION", "PLAYER_EQUIPMENT_UPDATE", "PLAYER_BAG_CHANGED", "BAG_ITEM_UPDATE", "STORE_OPEN", "TP_EXP_UPDATE"},
+	events		= {"PLAYER_EQUIPMENT_UPDATE", "PLAYER_BAG_CHANGED", "BAG_ITEM_UPDATE", "STORE_OPEN", "TP_EXP_UPDATE"},
 	blacklist = {
 		[221396] = 1, [221397] = 1, [221398] = 1, [221399] = 1,
 		[221400] = 1, [221401] = 1, [221402] = 1, [221403] = 1,
 	},
 	slots			= {},
+	slotOrder	= {0,1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,21,18,19,20,9},
 }
 
 local function SwapAmulet(slot, name)
@@ -60,9 +60,15 @@ function ME.Update(event, ...)
 	end
 	RB.UpdateButtonText(ME.name,
 		RB.Lang(ME.name, "DURA_SHORT", {RB.ColorByPercent(dura, 1, false, tostring(math.floor(100*dura)).."%%")}),
-		aName and RB.Lang(ME.name, "AMMO_SHORT", {RB.ColorByPercent(aInv, 999, false)}) or nil,
-		RB.ColorByName("white", GetEuipmentNumber())
+		aName and RB.Lang(ME.name, "AMMO_SHORT", {RB.ColorByPercent(aInv, 999, false)}) or nil
 	)
+	local oldIcon		= ME.icon
+	_,_,ME.icon = GetSkillDetail(RB.GetSkillBookIndexes(TEXT("Sys540000_name")))
+-- 	ME.icon		= {"Interface/gameicon/gameicon", 0.25, 0.375, 0.5, 0.625},
+
+	if oldIcon~=ME.icon then
+		RB.UpdateButtonIcon(ME.name)
+	end
 end
 
 function ME.STORE_OPEN()
@@ -71,30 +77,9 @@ function ME.STORE_OPEN()
 	end
 end
 
-function ME.CLICKACTION()
-	if true then return end
-
-
-	if RB.settings.autoRepairSlots.enabled~=true then return end
-	local hID = 201967
-	for i,enabled in pairs(RB.settings.autoRepairSlots) do
-		if type(i)=="number" and enabled==true then
-			local dVal, dMax, iName = GetInventoryItemDurable("player", i)
-			if iName then
--- 				if dMax>=101 and dVal<=100 and GetBagItemCount(hID)>0 then
-					UseItemByName(TEXT("Sys"..hID.."_name"))
-					PickupEquipmentItem(i)
--- 					CancelPendingItem()
-					RB.Print(RB.Lang(ME.name, "REPAIRING", {RB.ColorByRarity(GetInventoryItemQuality("player", i), iName)}))
--- 				end
-			end
-		end
-	end
-end
-
 function ME.Tooltip(tooltip)
 	local aName,aCount,sep = nil, 0, false
-	for _,i in ipairs({0,1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,21,18,19,20,9}) do
+	for _,i in ipairs(ME.slotOrder) do
 		local dVal, dMax, iName = GetInventoryItemDurable("player", i)
 		local quali							= GetInventoryItemQuality("player", i)
 		if iName then
@@ -115,66 +100,50 @@ function ME.Tooltip(tooltip)
 		end
 	end
 	if GetEquipmentRepairAllMoney()>0 then
-		tooltip:AddSeparator()
-		tooltip:AddDoubleLine(RB.Lang(ME.name, "REPAIRCOSTS"), "|cffFFFF00"..RB.Dec(GetEquipmentRepairAllMoney()).."|r")
+		RB.AddToTooltip("---")
+		RB.AddToTooltip(RB.Lang(ME.name, "REPAIRCOSTS"), RB.ColorByName("GOLD", GetEquipmentRepairAllMoney()))
 	end
-end
-
-local RepairItem_running = fale
-local function RepairItem()
-	if RepairItem_running==true then return else RepairItem_running = true end
-	local hID, rDone = 201967, 0
-
-	for i=0,21 do
-		if i==9 then i=10 end
-		local dVal, dMax, iName = GetInventoryItemDurable("player", i)
-		local quali							= GetInventoryItemQuality("player", i)
-		if iName and dVal<dMax and dVal<101 then
-			if GetBagItemCount(hID)>0 then
-				UseItemByName(TEXT("Sys"..hID.."_name"))
-				PickupEquipmentItem(i)
-				RB.Print(RB.Lang(ME.name, "REPAIRING", {RB.ColorByRarity(quali, iName)}))
-				rDone	= rDone + 1
-				coroutine.yield()
-			else
-				RB.Print(RB.Lang(ME.name, "NOHAMMER"))
-				break
-			end
-		end
-	end
-	if rDone>0 then
-		RB.Print(RB.Lang(ME.name, "REPDONE", {rDone}))
-	else
-		RB.Print(RB.Lang(ME.name, "NOREPAIR"))
-	end
-	RepairItem_running = nil
 end
 
 function ME.Click(key, tooltip)
 	if key=="LBUTTON" then
 		ToggleCharacter("EquipmentFrame")
-	elseif key=="RBUTTON" then
-		SwapEquipmentItem((GetEuipmentNumber()+1) % CharactFrame_GetEquipSlotCount())
 	elseif key=="MBUTTON" then
-		StaticPopupDialogs["ROMBAR_REPAIR_ITEMS"] = {
-			text 					= RB.Lang(ME.name, "REPAIRDIALOG"),
-			button1 			= RB.ColorByRarity(201967, TEXT("Sys201967_name")),
-			button2 			= RB.ColorByRarity(201014, TEXT("Sys201014_name")),
-			whileDead 		= 0,
-			exclusive 		= 1,
-			showAlert 		= 0,
-			hideOnEscape	= 1,
-			OnShow = function(this)
-				StaticPopup_Resize(this, "ROMBAR_REPAIR_ITEMS")
-			end,
-			OnAccept = function()
-				RB.RegisterEvent(ME.name, "COROUTINE", coroutine.create(RepairItem))
-			end,
-			OnCancel = function(this)
-				UseItemByName(TEXT(Sys201014_name))
+		SwapEquipmentItem((GetEuipmentNumber()+1) % CharactFrame_GetEquipSlotCount())
+	elseif key=="RBUTTON" then
+		RB.modules.dropdown.ShowDropDown(tooltip, ME.DropDownHandler)
+	end
+end
+
+function ME.DropDownHandler()
+	local DD,c,i 		= RB.modules.dropdown, 0
+	local cH1, cH2	= GetBagItemCount(201967), GetBagItemCount(201014)
+	if cH1>0 or cH2>0 then
+		for _,i in ipairs(ME.slotOrder) do
+			local dVal, dMax, iName = GetInventoryItemDurable("player", i)
+			local quali							= GetInventoryItemQuality("player", i)
+			if iName and dVal<dMax then
+				if i~=9 and (i<18 or i>20) then
+					c = c + 1
+					local func = function(this)
+						UseItemByName(TEXT("Sys201967_name"))
+						PickupEquipmentItem(i)
+						RB.Print(RB.Lang(ME.name, "REPAIRING", {RB.ColorByRarity(quali, iName)}))
+						RB.modules.dropdown.RefreshDropDown(ME.DropDownHandler)
+					end
+					local tooltip = RB.Lang(ME.name, "NOHAMMER")
+					DD.AddButton(RB.ColorByRarity(quali, iName), cH1>0 and func or nil, i, cH1<=0 and tooltip or nil)
+				end
 			end
-		}
-		StaticPopup_Show("ROMBAR_REPAIR_ITEMS")
+		end
+		if c==0 then
+			DD.AddText(RB.Lang(ME.name, "NOREPAIR"))
+		elseif cH2>0 then
+			DD.AddSeparator()
+			DD.AddButton(RB.ColorByRarity(201014, TEXT("Sys201014_name")).." x"..cH2, function(this) UseItemByName(TEXT("Sys201014_name")) end)
+		end
+	else
+		DD.AddText(RB.Lang(ME.name, "NOHAMMER"))
 	end
 end
 

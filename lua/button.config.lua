@@ -69,7 +69,7 @@ function ME.DropDownHandler()
 			DD.AddCheckBox("Debug",																RB.settings.debug,										"debug",								ToggleValue)
 		elseif UIDROPDOWNMENU_MENU_VALUE==2 then
 			DD.AddCheckBox(RB.Lang(ME.name, "AUTOREPAIR"),				RB.settings.autoRepair,								"autoRepair",						ToggleValue)
-			DD.AddCheckMenu(RB.Lang(ME.name, "AUTOREPAIRSLOTS"),	RB.settings.autoRepairSlots.enabled,	"autoRepairSlots",			ToggleValue)
+-- 			DD.AddCheckMenu(RB.Lang(ME.name, "AUTOREPAIRSLOTS"),	RB.settings.autoRepairSlots.enabled,	"autoRepairSlots",			ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "SKIPDIALOGS"),				RB.settings.skipDialogs,							"skipDialogs",					ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "BOSSBELL"),					RB.settings.bossBell,									"bossBell",							ToggleValue)
 			DD.AddSeparator()
@@ -86,6 +86,7 @@ function ME.DropDownHandler()
 			DD.AddCheckBox(RB.Lang(ME.name, "AUTOTRADE"),					RB.settings.autoTrade,								"autoTrade",						ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "DECLINEDUELL"),			RB.settings.declineDuel,							"declineDuel",					ToggleValue)
 			DD.AddSeparator()
+			DD.AddCheckBox(RB.Lang(ME.name, "AUTOUSEITEMS"),			RB.settings.autoUseItems.enabled,			"autoUseItems",					ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "AUTOAMULET"),				RB.settings.autoSwapAmulets,					"autoSwapAmulets",			ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "AUTOAMMO"),					RB.settings.autoEquipAmmo,						"autoEquipAmmo",				ToggleValue)
 		end
@@ -95,13 +96,13 @@ function ME.DropDownHandler()
 				DD.AddCheckBox(i.."%", i==RB.settings.tooltipScale, i, SetValue)
 			end
 		end
-		if UIDROPDOWNMENU_MENU_VALUE=="autoRepairSlots" then
-			for i=1, 17 do
-				if i~=9 and i~=8 then
-					DD.AddCheckBox(RB.Lang("equip", "SLOT"..i), RB.settings.autoRepairSlots[i], i, SetAutoRepairSlot)
-				end
-			end
-		end
+-- 		if UIDROPDOWNMENU_MENU_VALUE=="autoRepairSlots" then
+-- 			for i=1, 17 do
+-- 				if i~=9 and i~=8 then
+-- 					DD.AddCheckBox(RB.Lang("equip", "SLOT"..i), RB.settings.autoRepairSlots[i], i, SetAutoRepairSlot)
+-- 				end
+-- 			end
+-- 		end
 	end
 end
 

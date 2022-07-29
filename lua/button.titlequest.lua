@@ -2,11 +2,10 @@
 
 local RB = _G.RoMBar
 local ME = {
-	icon			= {"Interface/gameicon/gameicon", 0, 0.125, 0.125, 0.25},
 	events		= {"LOADING_END", "RESET_QUESTTRACK", "PLAYER_TITLE_ID_CHANGED", "PLAYER_TITLE_FLAG_CHANGED", "PLAYER_GET_TITLE", "ELITE_BOSS_BELL"},
 	actions		= {
  		MBUTTON	= {func = function() ToggleUIFrame(AchievementTitleFrame) end},
-		RBUTTON	= {func = function() ToggleUIFrame(UI_QuestBook) end},
+		LBUTTON	= {func = function() ToggleUIFrame(UI_QuestBook) end},
 	},
 	titles		= nil,
 }
@@ -32,11 +31,22 @@ end
 
 function ME.Update(event, ...)
 	local dVal, dMax			= Daily_count()
-	local title						= ME.GetTitle(GetCurrentTitle())
+	local title, icon			= ME.GetTitle(GetCurrentTitle())
+	local oldIcon					= ME.icon
 
 	RB.settings.titleList	= RB.settings.titleList or {}
 	if GetCurrentTitle()>0 then
 		RB.settings.titleList[GetCurrentTitle()] = true
+	end
+
+	if icon then
+		ME.icon	= icon
+	else
+		ME.icon	= {"Interface/gameicon/gameicon", 0, 0.125, 0.125, 0.25}
+	end
+
+	if ME.icon~=oldIcon then
+		RB.UpdateButtonIcon(ME.name)
 	end
 
 	RB.UpdateButtonText(ME.name,
@@ -102,8 +112,8 @@ end
 
 function ME.Click(key, tooltip)
 	if key=="LBUTTON" then
-		RB.modules.dropdown.ShowDropDown(tooltip, ME.DropDownHandler)
 	elseif key=="RBUTTON" then
+		RB.modules.dropdown.ShowDropDown(tooltip, ME.DropDownHandler)
 	elseif key=="MBUTTON" then
 	end
 end

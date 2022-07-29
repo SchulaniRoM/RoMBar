@@ -24,6 +24,7 @@ local ME = {
 		{zone = 401,	pattern = "SC_GUILDHOUSE_02", button = 0},								-- Ich möchte die Gildenburg verlassen. - dialog
 		{zone = 401,	pattern = "SC_BUFFTOWER_01",	replace = {["(<CS>.*</CS>)"]=""}},	-- Gildenburg-Buffs
 		{zone = 401,	pattern = "Sys492712_name",		replace = {["( X)"]=""}},		-- Pferdehaltung X
+		{zone = 401,	pattern = "SO_OPENMAIL"},																	-- Gilden-Postfächer öffnen
 		{pattern = "SC_GUILDHOUSE_01", button = 2},															-- Ich möchte die Gildenburg betreten.
 
 		{zone = 400,	pattern = "HOUSE_MAID_HOUSE_CHANGEJOB",				button = 2,	modifier = "sCa"},	-- Hausmädchen inhouse - Klasse wechseln
@@ -129,7 +130,7 @@ local function CheckQuestListDialog(event, ...)
 				CompleteQuest()
 				SpeakFrame_Hide()
 			end
-		else
+		elseif UnitName("target") then	-- BUG kodex-book will not open if target selected
 			if GetNumQuest(3)>0 then
 				OnClick_QuestListButton(3, 1)
 			end

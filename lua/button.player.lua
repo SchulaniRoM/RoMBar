@@ -92,6 +92,29 @@ function ME.Tooltip(tooltip)
 	local mXPb, mTPb							= GetPlayerExtraPoint()
 	tooltip:AddDoubleLine(RB.Lang(ME.name, "DEPT"), 		sprintf("%s: %s%s%s: %s", RB.Lang(ME.name, "XP_SHORT"), RB.Dec(mXPd), RB.Separator(), RB.Lang(ME.name, "TP_SHORT"), RB.Dec(mTPd)))
 	tooltip:AddDoubleLine(RB.Lang(ME.name, "BONUS"),		sprintf("%s: %s%s%s: %s", RB.Lang(ME.name, "XP_SHORT"), RB.Dec(mXPb), RB.Separator(), RB.Lang(ME.name, "TP_SHORT"), RB.Dec(mTPb)))
+
+	-- set skils
+	local numSuitSkills	= {SetSuitSkill_List()}				-- warrior , scout , rogue , mage , priest , knight , warden , druid , common
+	local pToken				= UnitClassToken("player")
+	local pClass				= UnitClass("player")
+	local pText, cText	= "", ""
+  for i = 1, GetNumClasses() do
+    local _,token = GetClassInfoByID(i)
+    if token == pToken then
+			for j=0,(numSuitSkills[i] or 0)-1 do
+				local skill = GetSuitSkill_List(i,j)
+				pText = sprintf("%s%s%s", #pText>0 and pText or "", #pText>0 and ", " or "", skill)
+			end
+			for j=0,(numSuitSkills[#numSuitSkills] or 0)-1 do
+				local skill = GetSuitSkill_List(#numSuitSkills,j)
+				cText = sprintf("%s%s%s", #cText>0 and cText or "", #cText>0 and ", " or "", skill)
+			end
+			if #pText>0 or #cText>0 then RB.AddToTooltip("---") end
+			if #pText>0 then RB.AddToTooltip(RB.Lang(ME.name, "SUITSKILLCLASS", {pClass})..": "..pText) end
+			if #cText>0 then RB.AddToTooltip(RB.Lang(ME.name, "SUITSKILLCOMMON")..": "..cText) end
+      break
+    end
+  end
 end
 
 RB.RegisterButton("player", ME)

@@ -147,7 +147,7 @@ function ME.GetFriendList()
 		if name then friends[name] = groups[gID] end
 	end
 	if UnitName("player") then
-		friends[UnitName("player")] = GetAccountName()
+		friends[UnitName("player")] = "Twink"
 	end
 	return friends
 end
@@ -195,13 +195,18 @@ function ME.HOUSESFRAME_SHOW()
 	if not error then
 		local data	= dofile(sprintf("%s/personal.lua", RB.addonPath))
 		local merge,name	= data.myTwinks or {}
-		merge[UnitName("player")] = nil
+		merge[UnitName("player")] = false
 		for i=1,Houses_GetFriendCount() do
 			name	= Houses_GetFriendInfo(i)
-			if merge[name] then merge[name] = nil end
+			if merge[name] then
+				RB.Debug(ME.name, "HOUSESFRAME_SHOW", name, "allready HouseFriend")
+				merge[name] = false
+			end
 		end
-		for name,_ in pairs(merge) do
-			Houses_AddFriend(name)
+		for name,data in pairs(merge) do
+			if data~=false then
+				Houses_AddFriend(name)
+			end
 		end
 	end
 end

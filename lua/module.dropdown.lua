@@ -44,4 +44,9 @@ function ME.ShowDropDown(anchor, handler)
 	anchor:Hide()
 end
 
+function ME.RefreshDropDown(handler)
+	CloseDropDownMenus()
+	UIDropDownMenu_Initialize(ME.GetDropDownFrame(), handler, "MENU")
+end
+
 RB.RegisterModule("dropdown", ME)

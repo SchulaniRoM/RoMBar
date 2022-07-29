@@ -3,7 +3,7 @@
 local RB = _G.RoMBar
 local ME = {
 	icon			= RB.addonPath.."/textures/SaddleGrey",
-	events		= {"LOADING_END", "ZONE_CHANGED", "PLAYER_DEAD", "CASTING_STOP", "BAG_ITEM_UPDATE", "UNIT_BUFF_CHANGED"},
+	events		= {"LOADING_END", "ZONE_CHANGED", "PLAYER_DEAD", "CASTING_STOP", "BAG_ITEM_UPDATE"},
 	mounts		= {},
 	numMounts	= 0,
 }
@@ -31,11 +31,13 @@ local function IsMounted()
 		if name and icon then
 			for _,pattern in pairs(mountPattern) do
 				if icon:find(pattern) then
+					RB.RegisterEvent("UNIT_BUFF_CHANGED")
 					return true, i, icon
 				end
 			end
 		end
 	until not name or name==""
+	RB.UnregisterEvent("UNIT_BUFF_CHANGED")
 	return false, 0, nil
 end
 

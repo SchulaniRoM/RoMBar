@@ -208,8 +208,8 @@ function RB.OnEvent(event, ...)
 	if event=="ONENTER" or event=="ONLEAVE" then
 		return RB.ShowTooltip(event, ...)
 	elseif event=="ONCLICK" then
-		RB.ButtonClick(...)
--- 		return RB.OnEvent("CLICKACTION")
+		RB.OnEvent("CLICKACTION")	-- workaround for actions that needs a button click
+		return RB.ButtonClick(...)
 	elseif RB[event] then
 		RB[event](event, ...)
 	end
@@ -299,11 +299,17 @@ function RB.VARIABLES_LOADED()
 	RB.settings	= RB.defaults
 	local save	= _G[RB.addonProfile] or {}
 	for k,v in pairs(save) do
-		if RB.settings[k]~=nil then RB.settings[k] = v end
+		if k~="autoUseItems" then
+			if RB.settings[k]~=nil then RB.settings[k] = v end
+		end
 	end
 
 	ITEM_QUEUE_FRAME_UPSATETIME = 0
 	ITEM_QUEUE_FRAME_INSERTITEM = 0
+
+	-- expand buffs
+	MAX_BUFF_SIZE = 40
+	PlayerBuffFrame_OnLoad(PlayerBuffFrame)
 
 	RB.LoadModules()
 	RB.Print(sprintf("|cff34CB93RoMBar %s|r %s", RB.addonVersion, RB.Lang("WELCOME")))
@@ -415,10 +421,6 @@ function RB.UpdateUI(withButtons)
 		MainMenuFrame:SetAnchor("BOTTOMRIGHT","TOPRIGHT","RoMBarMain",0,0)
 	end
 
-	-- expand buffs
-	MAX_BUFF_SIZE = 40
-	PlayerBuffFrame_OnLoad(PlayerBuffFrame)
-	
 	-- extend actionbars
 	for _,b in pairs({"Main", "Bottom", "Right", "Left", "Pet", "Extra" }) do
 		for i = 1,20 do
@@ -430,7 +432,7 @@ function RB.UpdateUI(withButtons)
 						PickupAction(ActionButton_GetButtonID(this))
 					end
 				end
-				actionButton.__uiLuaOnReceiveDrag__		= function(this)
+				actionButton.__uiLuaOnReceiveDrag__	= function(this)
 					if CursorHasItem() then
 						PickupAction(ActionButton_GetButtonID(this))
 					end
@@ -930,7 +932,7 @@ function RB.ColorByName(cName, text)
 			RED						= {1.00,	0.00,	0.00},
 			DARK_RED			= {0.50,	0.00,	0.00},
 			LIGHT_RED			= {0.96,	0.60,	0.47}, -- raid chat
-			PINK					= {1.00,	0.80,	0.80},
+			PINK					= {1.00,	0.60,	0.60},
 			GREY					=	{0.60,	0.60,	0.60},
 			WHITE					= {1.00,	1.00,	1.00},
 			BLUE					= {0.00,	0.75,	0.95}, -- party chat
@@ -995,6 +997,53 @@ function RB.GetSkillBookIndexes(skillName)
 	return nil, nil, false
 end
 
+function RB.ExtractItemData(itemlink)
+	local item_data 			= {}
+	local data_str, name	= string.match(itemlink, "|Hitem:([%x ]+)|h|c%x%x%x%x%x%x%x%x%[(.-)%]|r|h")
+	if not name or not data_str then return false end
+
+	local function s(txt)
+		local n = tonumber(txt,16) or 0
+		if n>0 then n = n + 0x70000 end
+		return n
+	end
+
+	local data = Split(data_str, " ", 14)
+	while #data<14 do table.insert(data,"0") end
+
+	item_data.id 				= tonumber(data[1], 16)
+	item_data.bind 			= tonumber(string.sub(data[2],-2,-1), 16)
+	item_data.bind_flag = tonumber(string.sub(data[2],-4,-3), 16) or 0
+
+	item_data.unk1 			= tonumber(string.sub(data[3],-8,-7), 16) or 0
+	item_data.max_dura	= tonumber(string.sub(data[3],-2,-1), 16) or 100
+	item_data.dura			= tonumber(data[11], 16) / 100
+
+	local runesPlus			= tonumber(string.sub(data[3],-6,-5), 16) or 0
+	local tier_rar			= tonumber(string.sub(data[3],-4,-3), 16) or 0
+	local free_slots		= math.floor(runesPlus / 32)
+
+	item_data.plus 			= runesPlus % 32
+	item_data.rarity 		= math.floor(tier_rar / 32)
+	item_data.tier 			= (tier_rar % 32 )-10
+
+	item_data.stats			= {
+		s(string.sub(data[4],-4,-1)), s(string.sub(data[4],-8,-5)),
+		s(string.sub(data[5],-4,-1)), s(string.sub(data[5],-8,-5)),
+		s(string.sub(data[6],-4,-1)), s(string.sub(data[6],-8,-5)),
+	}
+
+	item_data.runes			= {}
+	for i=7,10 do
+		if data[i] and tonumber(data[i]) then
+			table.insert(item_data.runes, tonumber(data[i]))
+		end
+	end
+	item_data.maxRunes	= free_slots + #item_data.runes
+
+	return item_data
+end
+
 function RB.Lang(name, token, replace, default)
 	if RB.modules and RB.modules.locale then
 		return RB.modules.locale.Lang(name, token, replace, default)
@@ -1011,5 +1060,5 @@ end
 	hooks
 --]]---------------------------------------------------------------------------
 
-RB.Hook(_G, "GameTooltip_OnUpdate", RB.GameTooltip_OnUpdate)
+-- RB.Hook(_G, "GameTooltip_OnUpdate", RB.GameTooltip_OnUpdate)
 RB.Hook(_G, "CooldownFrame_SetTime", RB.CooldownFrame_SetTime)

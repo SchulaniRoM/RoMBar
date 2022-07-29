@@ -74,6 +74,31 @@ function ME.FindString(str, root)
 	RB.Print("--- ende ---")
 end
 
+--Was used to retrieve the names of descendants of "WhateverFrameNameHere".
+function FinAnyFrame(input)
+	local childList = {}
+	for k,v in pairs(_G) do
+		if (type(v) == "table" and v.GetParent ~= nil) then
+			if (v ~= UIParent) then
+				local f, done, found = v, false, false
+				while not done do
+					f = f:GetParent()
+					if f~=nil and string.find(string.lower(f:GetName()), string.lower(input)) then
+						found	= true
+						done	= true
+						DEFAULT_CHAT_FRAME:AddMessage(v:GetName())
+					elseif f == WorldFrame or f == UIParent or f == nil then
+						done	= true
+					end
+				end
+				if found then
+					childList[#childList+1] = k
+				end
+			end
+		end
+	end
+end
+
 --[[----------------------------------------------------------------------------------------------
 
 checking buffs and debuffs by ID or name
@@ -83,6 +108,7 @@ checking buffs and debuffs by ID or name
 		HasDebuff(ID or name, [target])
 
 * returns:
+		pos 		- position of the buff in the bufflist
 		name		- full name of the buff/debuff
 		id			- id of the buff/debuff
 		count		- number of stacks
@@ -98,12 +124,12 @@ local function CheckBuff(ID_Name, debuff, target)
 	local t, n, d		= target or "player", 0, debuff==true or false
 	local id, name	= type(ID_Name)=="number" and ID_Name or nil, type(ID_Name)=="string" and ID_Name or nil
 	repeat n = n + 1
-		_name, _icon, _count, _id, _params = debuff and UnitDebuff(t, n) or UnitBuff(t, n)
-		if name and (_id==id or _name==name) then
-			return _name, _id, _count, _params
+		local _name, _icon, _count, _id, _params = d and UnitDebuff(t, n) or UnitBuff(t, n)
+		if _name and (_id==id or _name==name) then
+			return n, _name, _id, _count, _params
 		end
-	until not _id
-	return nil, nil, nil, nil
+	until not _id or n>40
+	return 0, nil, nil, nil, nil
 end
 
 function ME.HasDebuff(ID_Name, target)
@@ -315,15 +341,14 @@ shows cooldown on actionbar buttons with macro
 
 --]]----------------------------------------------------------------------------------------------
 
-local function UpdateMacroCD(elapsedTime)
+local function UpdateMacroCD(event, elapsedTime)
 	ME.macroSlots				= ME.macroSlots or {}
 	local numRunning		= 0
 	for k,v in pairs(ME.macroSlots) do
 		ME.macroSlots[k].remaining = math.max(0, ME.macroSlots[k].remaining - elapsedTime)
 		numRunning = numRunning + (ME.macroSlots[k].remaining>0 and 1 or 0)
 	end
-
-	for i,ab in pairs({"Main", "Bottom", "Right", "Left"}) do
+	for i,b in pairs({"Main", "Bottom", "Right", "Left"}) do
 		for j = 1, ACTIONBAR_NUM_BUTTONS do
 			local id = (i-1)*ACTIONBAR_NUM_BUTTONS+j
 			local icon, name, count = GetActionInfo(id)
