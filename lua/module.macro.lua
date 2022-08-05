@@ -3,7 +3,6 @@
 local RB = _G.RoMBar
 local ME = {
 	exports		= {
-		"FindString",	-- for developement
 		"HasBuff",
 		"HasDebuff",
 		"HasQuest",
@@ -14,14 +13,8 @@ local ME = {
 		"TargetUnitByName",
 		"FocusUnitByName",
 		"UnitIsCasting",
-		"GetNpcID",
-		"GetPosition",
 		"MacroCD",
 		"UseItem",
-		"SH_loot",
-		"SH_unbox",
-		"BK_unbox",
-		"TQ_Logar",
 		"GetNextFreeBagSlot",
 	},
 	macroSlots	= {},
@@ -43,57 +36,6 @@ function ME.Init()
 				RB.Hook(_G, func, ME[func])
 			else
 				_G[func] = ME[func]
-			end
-		end
-	end
-end
-
-function ME.FindString(str, root)
-	local k,v,i,t1,t2
-	for k,v in pairs(root or _G) do
-		if tostring(v):match(str) then
-			RB.Print("found in", tostring(k), ":", tostring(v))
-		end
-	end
-	for i=100000,999999 do
-		t1 = "Sys"..i.."_name"	t2 = TEXT(t1)
-		if t1~=t2 and t2:match(str) then
-			RB.Print("found in", i, ":", t1, t2)
-		end
-		t1 = "SC_"..i.."_S"	t2 = TEXT(t1)
-		if t1~=t2 and t2:match(str) then
-			RB.Print("found in", i, ":", t1, t2)
-		end
-		for j=0,9 do
-			t1 = "SO_"..i.."_"..j	t2 = TEXT(t1)
-			if t1~=t2 and t2:match(str) then
-				RB.Print("found in", i, ":", t1, t2)
-			end
-		end
-	end
-	RB.Print("--- ende ---")
-end
-
---Was used to retrieve the names of descendants of "WhateverFrameNameHere".
-function FinAnyFrame(input)
-	local childList = {}
-	for k,v in pairs(_G) do
-		if (type(v) == "table" and v.GetParent ~= nil) then
-			if (v ~= UIParent) then
-				local f, done, found = v, false, false
-				while not done do
-					f = f:GetParent()
-					if f~=nil and string.find(string.lower(f:GetName()), string.lower(input)) then
-						found	= true
-						done	= true
-						DEFAULT_CHAT_FRAME:AddMessage(v:GetName())
-					elseif f == WorldFrame or f == UIParent or f == nil then
-						done	= true
-					end
-				end
-				if found then
-					childList[#childList+1] = k
-				end
 			end
 		end
 	end
@@ -159,41 +101,6 @@ function ME.HasQuest(id)
 		end
 	end
 	return false
-end
-
---[[----------------------------------------------------------------------------------------------
-
-running kitty-combo after looting and target changes to next enemy
-
-* syntax:
-		RB_Kitty(yourKittyToken(s))
-
-* returns:
-		nothing
-
---]]----------------------------------------------------------------------------------------------
-
-function ME.RB_Kitty(kittyToken)
-	if IsCtrlKeyDown() then return end
-	if kittyToken=="pClass" then
-		kittyToken = UnitClassToken("player")
-	end
-	if UnitName("target") and not UnitIsDeadOrGhost("target") and UnitCanAttack("player", "target") then
-		Kitty.attack(kittyToken or nil)
-	end
-end
-
-function ME.NextTarget(pattern)
-	if UnitIsDeadOrGhost("target") then
-		CastSpellByName(TEXT("Sys540000_name"))
-		TargetUnit()
-	elseif not UnitName("target") then
-		local tmp = GC_GetCameraSelectTarget()
-		GC_SetCameraSelectTarget(true)
-		if pattern then TargetUnitByName(pattern)
-		else TargetNearestEnemy() end
-		GC_SetCameraSelectTarget(tmp)
-	end
 end
 
 --[[----------------------------------------------------------------------------------------------
@@ -380,42 +287,6 @@ end
 
 --[[----------------------------------------------------------------------------------------------
 
-shows your current position in chat - for dev use
-
-* syntax:
-		GetPosition()
-
-* returns:
-		nothing
-
---]]----------------------------------------------------------------------------------------------
-
-function ME.GetPosition()
-	local m		= GetCurrentWorldMapID()
-	local z,n = GetZoneID(), GetZoneName()
-	local x,y = GetPlayerWorldMapPos(m)
-	DEFAULT_CHAT_FRAME:AddMessage(sprintf("zone: %s (%d) xPos: %.10f yPos: %.10f", n or "unknown", z or 0, x or 0, y or 0))
-end
-
---[[----------------------------------------------------------------------------------------------
-
-shows id of a npc - for dev use
-
-* syntax:
-		GetNpcID([target])
-
-* returns:
-		nothing
-
---]]----------------------------------------------------------------------------------------------
-
-function ME.GetNpcID(target)
-	target = target or "target"
-	DEFAULT_CHAT_FRAME:AddMessage(sprintf("npcID of %s: %d", target, UnitGUID(target) or 0))
-end
-
---[[----------------------------------------------------------------------------------------------
-
 use an item if it was found in bag by id or name
 
 * syntax:
@@ -456,76 +327,6 @@ function ME.GetNextFreeBagSlot(start, finish)
 		if not item or item=="" then
 			return bagID
 		end
-	end
-	return false
-end
-
---[[----------------------------------------------------------------------------------------------
-
-loot macro for sturmhöhe - targets next chest and click it to loot
-
-* syntax:
-		SH_loot()
-
-* returns:
-		nothing
-
---]]----------------------------------------------------------------------------------------------
-
-function ME.SH_loot()
-	local i, n = 0, "Geheimnisvolle"
-	if UnitName("target")==nil then
-		TargetUnit("player")
-	end
-	if string.match(UnitName("target"), n)==n then
-		FocusUnit(1, "target")
-	end
-	repeat
-		if string.match(UnitName("target"), n)~=n or UnitIsUnit("player", "focus1")==false then
-			TargetNearestFriend()
-			i=i+1
-		end
-	until i==40 or string.match(UnitName("target"), n)==n
-	if string.match(UnitName("target"), n)~=n then
-		TargetUnit("player")
-	end
-	if string.match(UnitName("target"), n)==n then
-		FocusUnit(1, "target")
-		CastSpellByName("Angreifen")
-	end
-end
-
---[[----------------------------------------------------------------------------------------------
-
-unbox macro differen chests and pakets (SH, BK) if at least 5 slots available in bag
-
---]]----------------------------------------------------------------------------------------------
-
-function ME.SH_unbox()
-	ITEM_QUEUE_FRAME_UPSATETIME = 0
-	ITEM_QUEUE_FRAME_INSERTITEM = 0
-	local i
-	local _,s,_ = GetBagCount()
-	if s>5 then
-		for i=203256,203265 do if UseItem(i) then return true end end
-		for i=208361,208370 do if UseItem(i) then return true end end
-		RB.Print("nothing to unpack")
-	else
-		RB.Print("need more space")
-	end
-	return false
-end
-
-function ME.BK_unbox()
-	ITEM_QUEUE_FRAME_UPSATETIME = 0
-	ITEM_QUEUE_FRAME_INSERTITEM = 0
-	local i
-	local _,s,_ = GetBagCount()
-	if s>5 then
-		for i=206770,206775 do if UseItem(i) then return true end end
-		RB.Print("nothing to unpack")
-	else
-		RB.Print("need more space")
 	end
 	return false
 end
