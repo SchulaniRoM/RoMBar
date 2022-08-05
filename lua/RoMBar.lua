@@ -35,6 +35,10 @@ local assert = assert
 local lloadfile = loadfile
 local dofile = dofile
 
+if not sprintf then sprintf = function(str, ...)
+	return str:format(...)
+end end
+
 local function TableSize(tbl)
 	local c = 0
 	if type(tbl)=="table" then
@@ -48,7 +52,7 @@ local function TableJoin(tbl, sep)
 	if type(tbl)=="table" then
 		for _,v in pairs(tbl) do
 			if v then
-				txt = sprintf("%s%s%s", txt, #txt>0 and sep or "", tostring(v))
+				txt = ("%s%s%s"):format(txt, #txt>0 and sep or "", tostring(v))
 			end
 		end
 	else
@@ -83,7 +87,7 @@ local function Split(str, delim, limit)
 	limit = tonumber(limit) and tonumber(limit) or 0
 	if not str:find(delim) then return {str} end
 	local res, lastPos = {}, 0
-	local pat = sprintf("(.-)%s()", delim)
+	local pat = ("(.-)%s()"):format(delim)
 	for part, pos in str:gfind(pat) do
 		res[#res+1] = part
 		lastPos			= pos
@@ -995,53 +999,6 @@ function RB.GetSkillBookIndexes(skillName)
 		end
 	end
 	return nil, nil, false
-end
-
-function RB.ExtractItemData(itemlink)
-	local item_data 			= {}
-	local data_str, name	= string.match(itemlink, "|Hitem:([%x ]+)|h|c%x%x%x%x%x%x%x%x%[(.-)%]|r|h")
-	if not name or not data_str then return false end
-
-	local function s(txt)
-		local n = tonumber(txt,16) or 0
-		if n>0 then n = n + 0x70000 end
-		return n
-	end
-
-	local data = Split(data_str, " ", 14)
-	while #data<14 do table.insert(data,"0") end
-
-	item_data.id 				= tonumber(data[1], 16)
-	item_data.bind 			= tonumber(string.sub(data[2],-2,-1), 16)
-	item_data.bind_flag = tonumber(string.sub(data[2],-4,-3), 16) or 0
-
-	item_data.unk1 			= tonumber(string.sub(data[3],-8,-7), 16) or 0
-	item_data.max_dura	= tonumber(string.sub(data[3],-2,-1), 16) or 100
-	item_data.dura			= tonumber(data[11], 16) / 100
-
-	local runesPlus			= tonumber(string.sub(data[3],-6,-5), 16) or 0
-	local tier_rar			= tonumber(string.sub(data[3],-4,-3), 16) or 0
-	local free_slots		= math.floor(runesPlus / 32)
-
-	item_data.plus 			= runesPlus % 32
-	item_data.rarity 		= math.floor(tier_rar / 32)
-	item_data.tier 			= (tier_rar % 32 )-10
-
-	item_data.stats			= {
-		s(string.sub(data[4],-4,-1)), s(string.sub(data[4],-8,-5)),
-		s(string.sub(data[5],-4,-1)), s(string.sub(data[5],-8,-5)),
-		s(string.sub(data[6],-4,-1)), s(string.sub(data[6],-8,-5)),
-	}
-
-	item_data.runes			= {}
-	for i=7,10 do
-		if data[i] and tonumber(data[i]) then
-			table.insert(item_data.runes, tonumber(data[i]))
-		end
-	end
-	item_data.maxRunes	= free_slots + #item_data.runes
-
-	return item_data
 end
 
 function RB.Lang(name, token, replace, default)

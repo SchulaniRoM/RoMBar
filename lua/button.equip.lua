@@ -64,7 +64,6 @@ function ME.Update(event, ...)
 	)
 	local oldIcon		= ME.icon
 	_,_,ME.icon = GetSkillDetail(RB.GetSkillBookIndexes(TEXT("Sys540000_name")))
--- 	ME.icon		= {"Interface/gameicon/gameicon", 0.25, 0.375, 0.5, 0.625},
 
 	if oldIcon~=ME.icon then
 		RB.UpdateButtonIcon(ME.name)
@@ -74,6 +73,7 @@ end
 function ME.STORE_OPEN()
 	if RB.settings.autoRepair and GetEquipmentRepairAllMoney()>0 then
 		ClickRepairAllButton()
+		ME.Update("PLAYER_EQUIPMENT_UPDATE")
 	end
 end
 

@@ -8,7 +8,6 @@ local ME = {
 		"PARTY_INVITE_REQUEST", "RIDE_INVITE_REQUEST", "DUEL_REQUESTED",
 		"TRADE_REQUEST", "TRADE_ACCEPT_UPDATE",
 		"CHAT_MSG_GUILD", "CHAT_MSG_PARTY", "CHAT_MSG_WISPER",
-		"HOUSESFRAME_SHOW",
 	},
 	actions		= {
  		LBUTTON	= {func = function() ToggleUIFrame(GuildFrame) end},
@@ -94,6 +93,7 @@ function ME.DropDownHandler()
 				if name==UIDROPDOWNMENU_MENU_VALUE then
 					DD.AddButton(RB.Lang(ME.name, "WISPER"), function(this) ChatFrame_SendTell(UIDROPDOWNMENU_MENU_VALUE) CloseDropDownMenus() end)
 					DD.AddButton(RB.Lang(ME.name, "INVITE"), function(this) InviteByName(UIDROPDOWNMENU_MENU_VALUE) CloseDropDownMenus() end)
+					DD.AddButton(RB.Lang(ME.name, "INFO"), 	 function(this) AskPlayerInfo(UIDROPDOWNMENU_MENU_VALUE) CloseDropDownMenus() end)
 				end
 			end
 		end
@@ -187,28 +187,6 @@ function ME.SetFriendList(list)
 		end
 	end
 	ME.importState = IMPORTSTATE_DONE
-end
-
-function ME.HOUSESFRAME_SHOW()
-	if not Houses_IsOwner() or RB.settings.autoHouseFriend==false then return end
-	local _, error	= loadfile(sprintf("%s/personal.lua", RB.addonPath))
-	if not error then
-		local data	= dofile(sprintf("%s/personal.lua", RB.addonPath))
-		local merge,name	= data.myTwinks or {}
-		merge[UnitName("player")] = false
-		for i=1,Houses_GetFriendCount() do
-			name	= Houses_GetFriendInfo(i)
-			if merge[name] then
-				RB.Debug(ME.name, "HOUSESFRAME_SHOW", name, "allready HouseFriend")
-				merge[name] = false
-			end
-		end
-		for name,data in pairs(merge) do
-			if data~=false then
-				Houses_AddFriend(name)
-			end
-		end
-	end
 end
 
 function ChatBeep(event)

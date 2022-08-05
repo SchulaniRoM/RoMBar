@@ -48,7 +48,7 @@ function ME.Update(event, ...)
 	local peak				= GetPeakLevel()
 	RB.UpdateButtonText(ME.name,
 		{RB.ColorByClass(mToken, mClass.." "..mLevel), sLevel>0 and RB.ColorByClass(sToken, sClass.." "..sLevel) or nil, (peak and #peak>0) and RB.ColorByName("PINK", peak:match("([IXV]*)$")) or nil},
-		{dXP<0 and RB.ColorPosNeg(dXP) or nil, RB.ColorByPercent(cXP, mXP), RB.Dec(mXP), RB.ColorByPercent(cXP, mXP, false, sprintf("%d%%", percent))}
+		{dXP<0 and RB.ColorPosNeg(dXP) or nil, RB.ColorByPercent(cXP, mXP), RB.ColorByPercent(cXP, mXP, false, ("%d%%"):format(percent)), RB.Dec(mXP)}
 	)
 	local oldIcon		= ME.icon
 	if sToken and sToken~="" then
@@ -64,11 +64,11 @@ end
 function ME.Tooltip(tooltip)
 	-- classes
 	for i = 1, 16 do
-		local class, token, level, currXP, maxXP, debt = GetPlayerClassInfo(i, true)
+		local class, token, level, cXP, mXP, debt = GetPlayerClassInfo(i, true)
 		if class~=nil then
-			tooltip:AddDoubleLine(
+			RB.AddToTooltip(
 				RB.ColorByClass(token, class.." "..level),
-				sprintf("%s%s%s", RB.ColorByPercent(currXP, maxXP), RB.Separator(), RB.Dec(maxXP))
+				{RB.ColorByPercent(cXP, mXP), RB.ColorByPercent(cXP, mXP, false, ("%d%%"):format(100/mXP*cXP)), RB.Dec(mXP)}
 			)
 		end
 	end
@@ -79,20 +79,28 @@ function ME.Tooltip(tooltip)
 	local pLevel									= GetPeakLevel()
 	local mTPc, mTPm							= GetTpExp(), GetTotalTpExp()
 	if pLevel and mLevel==100 and sLevel==100 then
-		tooltip:AddDoubleLine(
+		RB.AddToTooltip(
 			RB.ColorByName("PINK", pLevel),
-			sprintf("%s%s%s", RB.ColorByPercent(cXP, mXP), RB.Separator(), RB.Dec(mXP))
+			{RB.ColorByPercent(cXP, mXP), RB.ColorByPercent(cXP, mXP, false, ("%d%%"):format(100/mXP*cXP)), RB.Dec(mXP)}
 		)
 	end
-	tooltip:AddDoubleLine(RB.Lang(ME.name, "TP"), sprintf("%s%s%s", RB.Dec(mTPc), RB.Separator(), RB.Dec(mTPm)))
-	tooltip:AddSeparator()
+	RB.AddToTooltip(
+		RB.Lang(ME.name, "TP"),
+		{RB.Dec(mTPc), ("%s: %s"):format(RB.Lang(ME.name, "TPALL"), RB.Dec(mTPm))}
+	)
+	RB.AddToTooltip("---")
 
 	-- dept / boni
 	local mXPd, mTPd, sXPd, sTPd	= GetPlayerExpDebt()
 	local mXPb, mTPb							= GetPlayerExtraPoint()
-	tooltip:AddDoubleLine(RB.Lang(ME.name, "DEPT"), 		sprintf("%s: %s%s%s: %s", RB.Lang(ME.name, "XP_SHORT"), RB.Dec(mXPd), RB.Separator(), RB.Lang(ME.name, "TP_SHORT"), RB.Dec(mTPd)))
-	tooltip:AddDoubleLine(RB.Lang(ME.name, "BONUS"),		sprintf("%s: %s%s%s: %s", RB.Lang(ME.name, "XP_SHORT"), RB.Dec(mXPb), RB.Separator(), RB.Lang(ME.name, "TP_SHORT"), RB.Dec(mTPb)))
-
+	RB.AddToTooltip(
+		RB.Lang(ME.name, "DEPT"),
+		{("%s: %s"):format(RB.Lang(ME.name, "XP_SHORT"), RB.Dec(mXPd)), ("%s: %s"):format(RB.Lang(ME.name, "TP_SHORT"), RB.Dec(mTPd))}
+	)
+	RB.AddToTooltip(
+		RB.Lang(ME.name, "BONUS"),
+		{("%s: %s"):format(RB.Lang(ME.name, "XP_SHORT"), RB.Dec(mXPb)), ("%s: %s"):format(RB.Lang(ME.name, "TP_SHORT"), RB.Dec(mTPb))}
+	)
 	-- set skils
 	local numSuitSkills	= {SetSuitSkill_List()}				-- warrior , scout , rogue , mage , priest , knight , warden , druid , common
 	local pToken				= UnitClassToken("player")

@@ -14,6 +14,9 @@ local ME = {
 		{zone = 353,	npc = 997,	pattern = C_SURE},														-- Bestätigen - Malatina Parcour des Schreckens verlassen
 		{zone = 6,		npc = 42,		button = 2},																	-- Hajikar Mashes - Transport Obsidian nach Dalanis
 		{zone = 15,		npc = 383,	button = 1},																	-- Arina Kaiyinth - Transport Dalanis nach Obsidian
+-- 		{zone = 33,								pattern = "Z34_QUEST427360_02"},							-- Portal Wehr von Mularan nach Lager der Silberspuren
+-- 		{zone = 34,								pattern = "Z34_QUEST427360_02"},							-- Portal Lager der Silberspuren nach Wehr von Mularan
+
 
 		{pattern = "SC_421614_0"},																							-- Lasst mich sehen, was Ihr zu verkaufen habt ...
 		{pattern = "SO_110439_0"},																							-- Ich möchte sehen, was Ihr zu verkaufen habt.
@@ -21,6 +24,8 @@ local ME = {
 		{pattern = "SO_OPENMAIL"},																							-- Postfächer öffnen
 		{pattern = "SO_OPENAC"},																								-- Auktionshaus öffnen
 
+		{zone = 402,	pattern = "SC_BUFFTOWER_01",	replace = {["(<CS>.*</CS>)"]=""}},	-- Gildenburg-Buffs (BK)
+		{zone = 402,	pattern = "Sys492712_name",		replace = {["( X)"]=""}},		-- Pferdehaltung X (BK)
 		{zone = 401,	pattern = "SC_GUILDHOUSE_02", button = 0},								-- Ich möchte die Gildenburg verlassen. - dialog
 		{zone = 401,	pattern = "SC_BUFFTOWER_01",	replace = {["(<CS>.*</CS>)"]=""}},	-- Gildenburg-Buffs
 		{zone = 401,	pattern = "Sys492712_name",		replace = {["( X)"]=""}},		-- Pferdehaltung X

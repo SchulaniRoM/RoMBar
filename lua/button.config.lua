@@ -69,12 +69,10 @@ function ME.DropDownHandler()
 			DD.AddCheckBox("Debug",																RB.settings.debug,										"debug",								ToggleValue)
 		elseif UIDROPDOWNMENU_MENU_VALUE==2 then
 			DD.AddCheckBox(RB.Lang(ME.name, "AUTOREPAIR"),				RB.settings.autoRepair,								"autoRepair",						ToggleValue)
--- 			DD.AddCheckMenu(RB.Lang(ME.name, "AUTOREPAIRSLOTS"),	RB.settings.autoRepairSlots.enabled,	"autoRepairSlots",			ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "SKIPDIALOGS"),				RB.settings.skipDialogs,							"skipDialogs",					ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "BOSSBELL"),					RB.settings.bossBell,									"bossBell",							ToggleValue)
 			DD.AddSeparator()
 			DD.AddCheckBox(RB.Lang(ME.name, "FRIENDSYNC"),				RB.settings.friendSync,								"friendSync",						ToggleValue)
-			DD.AddCheckBox(RB.Lang(ME.name, "HOUSEFRIEND"),				RB.settings.autoHouseFriend,					"autoHouseFriend",			ToggleValue)
 			DD.AddSeparator()
 			DD.AddCheckBox(RB.Lang(ME.name, "FRIENDPARTY"),				RB.settings.acceptPartyFriend,				"acceptPartyFriend",		ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "GUILDPARTY"),				RB.settings.acceptPartyGuild,					"acceptPartyGuild",			ToggleValue)
@@ -96,13 +94,6 @@ function ME.DropDownHandler()
 				DD.AddCheckBox(i.."%", i==RB.settings.tooltipScale, i, SetValue)
 			end
 		end
--- 		if UIDROPDOWNMENU_MENU_VALUE=="autoRepairSlots" then
--- 			for i=1, 17 do
--- 				if i~=9 and i~=8 then
--- 					DD.AddCheckBox(RB.Lang("equip", "SLOT"..i), RB.settings.autoRepairSlots[i], i, SetAutoRepairSlot)
--- 				end
--- 			end
--- 		end
 	end
 end
 

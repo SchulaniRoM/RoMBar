@@ -25,17 +25,6 @@ function ME.Update(event, ...)
 	local numBag, maxBag	= GetBagCount()
 	local numIsb, maxIsb	= 0, 50
 
-	if RB.settings.autoUseItems.enabled==true then
-		for id,data in pairs(RB.settings.autoUseItems) do
-			if id~="enabled" then
-				if data.enabled==true and GetBagItemCount(id)>0 and (not data.space or maxBag-data.space>=numBag) then
-					ME.CLICKACTION()	-- try to use item, otherwise register for CLICKACTION-event
-					break
-				end
-			end
-		end
-	end
-
 	for i = 1, 50 do
 		local _, _, count, _ = GetGoodsItemInfo(i)
 		numIsb = numIsb + (count>0 and 1 or 0)
@@ -44,23 +33,6 @@ function ME.Update(event, ...)
 		sprintf("%s: %s%s%s", RB.Lang(ME.name, "BAG_SHORT"), RB.ColorByPercent(numBag, maxBag, true), RB.Separator(), RB.Dec(maxBag)),
 		sprintf("%s: %s%s%s", RB.Lang(ME.name, "BAG7_SHORT"), RB.ColorByPercent(numIsb, maxIsb, true), RB.Separator(), RB.Dec(maxIsb))
 	)
-end
-
-function ME.CLICKACTION()
-	RB.UnregisterEvent("CLICKACTION")
-	local numBag, maxBag	= GetBagCount()
-	local id, data
-	if RB.settings.autoUseItems.enabled==true then
-		for id,data in pairs(RB.settings.autoUseItems) do
-			if id~="enabled" then
-				if data.enabled==true and GetBagItemCount(id)>0 and (not data.space or maxBag-data.space>=numBag) then
-					UseItemByName(TEXT("Sys"..id.."_name"))
-					RB.Debug(ME.name, "autoUseItem", id, TEXT("Sys"..id.."_name"), "used")
-					RB.RegisterEvent("CLICKACTION")	-- register for next click
-				end
-			end
-		end
-	end
 end
 
 function ME.Tooltip(tooltip)
