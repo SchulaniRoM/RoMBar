@@ -84,7 +84,6 @@ function ME.DropDownHandler()
 			DD.AddCheckBox(RB.Lang(ME.name, "AUTOTRADE"),					RB.settings.autoTrade,								"autoTrade",						ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "DECLINEDUELL"),			RB.settings.declineDuel,							"declineDuel",					ToggleValue)
 			DD.AddSeparator()
-			DD.AddCheckBox(RB.Lang(ME.name, "AUTOUSEITEMS"),			RB.settings.autoUseItems.enabled,			"autoUseItems",					ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "AUTOAMULET"),				RB.settings.autoSwapAmulets,					"autoSwapAmulets",			ToggleValue)
 			DD.AddCheckBox(RB.Lang(ME.name, "AUTOAMMO"),					RB.settings.autoEquipAmmo,						"autoEquipAmmo",				ToggleValue)
 		end

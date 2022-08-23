@@ -60,7 +60,8 @@ function ME.Update(event, ...)
 	end
 	RB.UpdateButtonText(ME.name,
 		RB.Lang(ME.name, "DURA_SHORT", {RB.ColorByPercent(dura, 1, false, tostring(math.floor(100*dura)).."%%")}),
-		aName and RB.Lang(ME.name, "AMMO_SHORT", {RB.ColorByPercent(aInv, 999, false)}) or nil
+		aName and RB.Lang(ME.name, "AMMO_SHORT", {RB.ColorByPercent(aInv, 999, false)}) or RB.Lang(ME.name, "NOAMMO"),
+		GetEuipmentNumber()
 	)
 	local oldIcon		= ME.icon
 	_,_,ME.icon = GetSkillDetail(RB.GetSkillBookIndexes(TEXT("Sys540000_name")))
@@ -109,7 +110,7 @@ function ME.Click(key, tooltip)
 	if key=="LBUTTON" then
 		ToggleCharacter("EquipmentFrame")
 	elseif key=="MBUTTON" then
-		SwapEquipmentItem((GetEuipmentNumber()+1) % CharactFrame_GetEquipSlotCount())
+		SwapEquipmentItem((GetEuipmentNumber()) % CharactFrame_GetEquipSlotCount())
 	elseif key=="RBUTTON" then
 		RB.modules.dropdown.ShowDropDown(tooltip, ME.DropDownHandler)
 	end

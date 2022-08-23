@@ -117,7 +117,7 @@ local function ScanBags()
 	UpdateIcon()
 end
 
-local function Dismount()
+function Dismount()
 	local mounted, buffNum, icon = IsMounted()
 	if mounted then CancelPlayerBuff(buffNum) end
 end
@@ -132,8 +132,9 @@ local function UseTicket()
 	ScanBags()
 end
 
-local function Mount(mount)
+function Mount(mount)
 	local mounted, buffNum, icon = IsMounted()
+	local mount = mount or RB.settings.lastMount
 	RB.Debug("mount", icon, mount)
 	if icon==mount then return end
 	if ME.numMounts<=0 and HasTicket() then UseTicket() end

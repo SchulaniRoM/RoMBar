@@ -39,6 +39,6 @@ local defaultsPerChar = {
 }
 
 local buttons		= {{"macro", "player", "craft"}, {"mount", "pet", "titlequest", "equip", "social", "money", "bag", "lootit", "mail", "timetravel", "config"}}
-local modules		= {"locale", "dropdown", "dialogs", "macro"}
+local modules		= {"locale", "dropdown", "dialogs", "macro", "hdetime"}
 
 return defaultsPerChar, buttons, modules

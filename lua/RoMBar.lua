@@ -324,8 +324,8 @@ function RB.VARIABLES_LOADED()
 end
 
 function RB.SAVE_VARIABLES()
-	_G[RB.addonProfile]		= RB.settings
-	_G[RB.addonSettings]	= RB.global
+	_G[RB.addonProfile]		= RB.settings or {}
+	_G[RB.addonSettings]	= RB.global or {}
 end
 
 function RB.WARNING_MEMORY()
